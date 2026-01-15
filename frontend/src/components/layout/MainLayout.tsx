@@ -7,6 +7,7 @@ import { FloatingNavbar } from "./FloatingNavbar";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { Footer } from "./Footer";
+import { MobileHeader } from "./MobileHeader";
 
 interface MainLayoutProps {
     children: ReactNode;
@@ -56,6 +57,9 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </>
             )}
 
+            {/* Mobile: Header with search and theme */}
+            {isMobile && <MobileHeader />}
+
             {/* Main content area */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -63,13 +67,15 @@ export function MainLayout({ children }: MainLayoutProps) {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className={`
           min-h-screen transition-all duration-300
-          ${!isMobile ? "ml-[240px] pt-24" : "pt-4 pb-28"}
+          ${!isMobile ? "ml-[240px] pt-24" : "pb-24"}
         `}
             >
                 {/* Content wrapper with depth effect - goes under floating navbar */}
                 <main className="relative z-10 px-4 md:px-6 lg:px-8">
-                    {/* Gradient overlay for depth effect on scroll */}
-                    <div className="pointer-events-none fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-pure-black via-pure-black/80 to-transparent z-30" />
+                    {/* Gradient overlay for depth effect on scroll - only on desktop */}
+                    {!isMobile && (
+                        <div className="pointer-events-none fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-pure-black via-pure-black/80 to-transparent z-30" />
+                    )}
 
                     {children}
 
