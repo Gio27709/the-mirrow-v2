@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { MainLayout } from "@/components/layout";
@@ -14,13 +14,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#000000",
+};
+
 export const metadata: Metadata = {
   title: "The Mirrow | Entertainment Platform",
   description: "Plataforma de entretenimiento profesional - Teatro, Músicos, DJs, Cantantes y Billar",
   keywords: ["entretenimiento", "teatro", "música", "djs", "cantantes", "billar"],
   authors: [{ name: "The Mirrow Team" }],
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
-  themeColor: "#000000",
 };
 
 export default function RootLayout({

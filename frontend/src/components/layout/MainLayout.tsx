@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigation, MOBILE_BREAKPOINT } from "@/lib/navigation";
+import { MOBILE_BREAKPOINT } from "@/lib/navigation";
 import { FloatingNavbar } from "./FloatingNavbar";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
@@ -23,7 +23,6 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
     const [isMobile, setIsMobile] = useState(false);
     const [isClient, setIsClient] = useState(false);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
