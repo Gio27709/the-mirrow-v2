@@ -1,0 +1,281 @@
+@import "tailwindcss";
+
+/* ============================================
+   THE MIRROW - Dynamic Theme System
+   ============================================ */
+
+/* ============================================
+   BASE VARIABLES (Shared across themes)
+   ============================================ */
+:root {
+  /* Metallic Accent Palette */
+  --accent-metallic: #C0C0C0;
+  --accent-metallic-hover: #E5E5E5;
+  --accent-metallic-dim: #8A8A8A;
+  --accent-metallic-glow: rgba(192, 192, 192, 0.3);
+
+  /* Layout Dimensions */
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 72px;
+  --bottom-nav-height: 64px;
+  --navbar-height: 64px;
+
+  /* Transitions */
+  --theme-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ============================================
+   DARK THEME (Default)
+   ============================================ */
+[data-theme="dark"] {
+  --bg-primary: #000000;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1A1A1A;
+  --bg-elevated: #242424;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
+
+  --border-subtle: #2A2A2A;
+  --border-medium: #3A3A3A;
+
+  --glass-bg: rgba(0, 0, 0, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   LIGHT THEME
+   ============================================ */
+[data-theme="light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F3F4F6;
+  --bg-tertiary: #E5E7EB;
+  --bg-elevated: #FFFFFF;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+
+  --border-subtle: #E5E7EB;
+  --border-medium: #D1D5DB;
+
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+
+  --shadow-color: rgba(0, 0, 0, 0.1);
+
+  /* Adjust metallic for light mode */
+  --accent-metallic: #71717A;
+  --accent-metallic-hover: #52525B;
+  --accent-metallic-dim: #A1A1AA;
+}
+
+/* ============================================
+   GREY THEME (Industrial)
+   ============================================ */
+[data-theme="grey"] {
+  --bg-primary: #1F1F1F;
+  --bg-secondary: #2D2D2D;
+  --bg-tertiary: #3E3E3E;
+  --bg-elevated: #4A4A4A;
+
+  --text-primary: #E5E5E5;
+  --text-secondary: #A3A3A3;
+  --text-muted: #737373;
+
+  --border-subtle: #404040;
+  --border-medium: #525252;
+
+  --glass-bg: rgba(45, 45, 45, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+  transition: var(--theme-transition);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: var(--theme-transition);
+}
+
+/* Safe Area for Mobile Devices */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ============================================
+   SELECTION STYLES
+   ============================================ */
+::selection {
+  background-color: var(--accent-metallic);
+  color: var(--bg-primary);
+}
+
+::-moz-selection {
+  background-color: var(--accent-metallic);
+  color: var(--bg-primary);
+}
+
+/* ============================================
+   SCROLLBAR STYLES
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+}
+
+/* ============================================
+   FOCUS STYLES (Accessibility)
+   ============================================ */
+:focus-visible {
+  outline: 2px solid var(--accent-metallic);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   LINK & BUTTON RESET
+   ============================================ */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Metallic Text Gradient */
+.text-gradient-metallic {
+  background: linear-gradient(135deg,
+      var(--accent-metallic) 0%,
+      var(--accent-metallic-hover) 50%,
+      var(--accent-metallic) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  transition: var(--theme-transition);
+}
+
+/* Metallic Glow Effect */
+.glow-metallic {
+  box-shadow: 0 0 20px var(--accent-metallic-glow);
+}
+
+/* Card Hover Effect */
+.card-hover {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--shadow-color);
+}
+
+/* Theme-aware backgrounds */
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+.bg-elevated {
+  background-color: var(--bg-elevated);
+}
+
+/* Theme-aware text */
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary-theme {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Theme-aware borders */
+.border-subtle {
+  border-color: var(--border-subtle);
+}
+
+.border-medium {
+  border-color: var(--border-medium);
+}
+
+/* Accent colors */
+.bg-accent {
+  background-color: var(--accent-metallic);
+}
+
+.bg-accent-hover:hover {
+  background-color: var(--accent-metallic-hover);
+}
+
+.text-accent {
+  color: var(--accent-metallic);
+}
+
+.border-accent {
+  border-color: var(--accent-metallic);
+}
