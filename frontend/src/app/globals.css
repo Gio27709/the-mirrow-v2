@@ -15,8 +15,8 @@
   --accent-metallic-glow: rgba(192, 192, 192, 0.3);
 
   /* Layout Dimensions */
-  --sidebar-width: 240px;
-  --sidebar-collapsed-width: 72px;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 80px;
   --bottom-nav-height: 64px;
   --navbar-height: 64px;
 

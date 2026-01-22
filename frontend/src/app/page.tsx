@@ -1,5 +1,6 @@
-import { Theater, Music, Disc3, Mic2, Target, ArrowRight, Sparkles } from "lucide-react";
+import { Theater, Music, Disc3, Mic2, Target, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { HeroCarousel } from "@/components/ui/HeroCarousel";
 
 const categories = [
   {
@@ -46,24 +47,20 @@ const categories = [
 
 export default function HomePage() {
   return (
-    <div className="max-w-6xl mx-auto space-y-12">
-      {/* Hero Section */}
-      <section className="text-center py-12 md:py-20">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-[var(--accent-metallic)]" />
-          <span className="text-sm text-[var(--text-secondary)] uppercase tracking-widest">
-            Premium Entertainment
-          </span>
-          <Sparkles className="w-5 h-5 text-[var(--accent-metallic)]" />
+    <div className="max-w-7xl mx-auto space-y-12">
+      {/* Hero Carousel Section - Sony Style */}
+      <section className="pb-6 pt-2">
+        <HeroCarousel />
+
+        {/* Sub-hero welcome text */}
+        <div className="text-center mt-12 mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight text-[var(--text-primary)]">
+            Bienvenido a <span className="text-gradient-metallic">The Mirrow</span>
+          </h1>
+          <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
+            Tu plataforma de entretenimiento profesional.
+          </p>
         </div>
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight text-[var(--text-primary)]">
-          Bienvenido a{" "}
-          <span className="text-gradient-metallic">The Mirrow</span>
-        </h1>
-        <p className="text-[var(--text-secondary)] text-lg md:text-xl max-w-2xl mx-auto">
-          Tu plataforma de entretenimiento profesional. Descubre teatro, música,
-          DJs, cantantes y más.
-        </p>
       </section>
 
       {/* Categories Grid */}

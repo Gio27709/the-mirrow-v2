@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Search, UserPlus, LogIn, X } from "lucide-react";
+import { Search, Bell, X } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 
 /**
@@ -20,32 +20,41 @@ export function FloatingNavbar() {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-4rem)] max-w-6xl md:ml-[140px]"
+            className="sticky top-4 z-40 w-full px-4 flex justify-center" // Centered wrapper
         >
-            <nav className="flex items-center justify-between gap-4 px-4 py-3 bg-[var(--glass-bg)] backdrop-blur-md border border-[var(--glass-border)] rounded-full shadow-lg shadow-[var(--shadow-color)] transition-colors">
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 shrink-0 group">
-                    <div className="relative w-[100px] h-[32px]">
-                        <Image
-                            src="/logo-mirrow.png"
-                            alt="The Mirrow"
-                            fill
-                            className="object-contain"
-                            priority
-                            onError={(e) => {
-                                // Fallback to text if image fails
-                                e.currentTarget.style.display = 'none';
-                            }}
-                        />
-                    </div>
-                    {/* Fallback text logo */}
-                    <span className="sr-only sm:not-sr-only text-[var(--text-primary)] font-semibold tracking-tight group-hover:text-[var(--accent-metallic)] transition-colors">
-                        The Mirrow
-                    </span>
-                </Link>
+            <nav className="w-full max-w-7xl flex items-center justify-between gap-4 px-6 py-3 bg-[var(--glass-bg)] backdrop-blur-md border border-[var(--glass-border)] rounded-full shadow-lg shadow-[var(--shadow-color)] transition-colors">
 
-                {/* Global Search */}
-                <div className="flex-1 max-w-md">
+                {/* Left Section: Logo + Navigation Links */}
+                <div className="flex items-center gap-8 shrink-0">
+                    {/* Logo */}
+                    <Link href="/" className="flex items-center gap-2 shrink-0 group">
+                        <div className="relative w-[100px] h-[32px]">
+                            <Image
+                                src="/logo-mirrow.png"
+                                alt="The Mirrow"
+                                fill
+                                className="object-contain"
+                                priority
+                                onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                }}
+                            />
+                        </div>
+                        <span className="sr-only sm:not-sr-only text-[var(--text-primary)] font-semibold tracking-tight group-hover:text-[var(--accent-metallic)] transition-colors">
+                            The Mirrow
+                        </span>
+                    </Link>
+
+                    {/* Desktop Navigation Links */}
+                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--text-secondary)]">
+                        <Link href="/about" className="hover:text-[var(--text-primary)] transition-colors">Sobre Nosotros</Link>
+                        <Link href="/company" className="hover:text-[var(--text-primary)] transition-colors">Compañía</Link>
+                        <Link href="/contact" className="hover:text-[var(--text-primary)] transition-colors">Contacto</Link>
+                    </div>
+                </div>
+
+                {/* Center Section: Search Bar */}
+                <div className="flex-1 max-w-md hidden lg:block">
                     <motion.div
                         animate={{
                             scale: isSearchFocused ? 1.02 : 1,
@@ -77,28 +86,47 @@ export function FloatingNavbar() {
                     </motion.div>
                 </div>
 
-                {/* Right section: Theme + Auth */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Right Section: Actions */}
+                <div className="flex items-center gap-3 shrink-0">
                     {/* Theme Switcher */}
                     <ThemeSwitcher />
 
-                    {/* Auth Buttons */}
+                    {/* Notifications (Keep for existing functionality) */}
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="w-10 h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] hover:border-[var(--accent-metallic)]/30 transition-all"
-                        title="Registrarse"
+                        className="relative w-10 h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] hover:border-[var(--accent-metallic)]/30 transition-all"
+                        title="Notificaciones"
                     >
-                        <UserPlus className="w-4 h-4" />
+                        <Bell className="w-5 h-5" />
+                        <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-[var(--bg-elevated)]" />
                     </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05, boxShadow: "0 0 20px var(--accent-metallic-glow)" }}
-                        whileTap={{ scale: 0.95 }}
-                        className="w-10 h-10 rounded-full bg-[var(--accent-metallic)]/20 border border-[var(--accent-metallic)]/40 flex items-center justify-center text-[var(--accent-metallic)] hover:bg-[var(--accent-metallic)] hover:text-[var(--bg-primary)] transition-all"
-                        title="Iniciar Sesión"
-                    >
-                        <LogIn className="w-4 h-4" />
-                    </motion.button>
+
+                    {/* Divider */}
+                    <div className="w-px h-6 bg-[var(--border-subtle)] mx-1 hidden md:block" />
+
+                    {/* Auth Buttons */}
+                    <div className="hidden md:flex items-center gap-2">
+                        <Link href="/login">
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent-metallic)] transition-colors"
+                            >
+                                Iniciar Sesión
+                            </motion.button>
+                        </Link>
+
+                        <Link href="/register">
+                            <motion.button
+                                whileHover={{ scale: 1.05, boxShadow: "0 0 20px var(--accent-metallic-glow)" }}
+                                whileTap={{ scale: 0.95 }}
+                                className="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all border border-white/10"
+                            >
+                                Registrarse
+                            </motion.button>
+                        </Link>
+                    </div>
                 </div>
             </nav>
         </motion.header>
