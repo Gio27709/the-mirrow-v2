@@ -19,6 +19,7 @@ export function useNavigation() {
 
     // Handle hydration and responsive detection
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsClient(true);
 
         const checkMobile = () => {

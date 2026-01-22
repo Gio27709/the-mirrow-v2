@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Menu } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 
 /**
@@ -48,8 +48,8 @@ export function MobileHeader() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
                             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isSearchOpen
-                                    ? "bg-[var(--accent-metallic)] text-[var(--bg-primary)]"
-                                    : "bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] text-[var(--text-secondary)]"
+                                ? "bg-[var(--accent-metallic)] text-[var(--bg-primary)]"
+                                : "bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] text-[var(--text-secondary)]"
                                 }`}
                             title="Buscar"
                         >

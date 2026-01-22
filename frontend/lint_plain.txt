@@ -1,0 +1,82 @@
+﻿
+> frontend@0.1.0 lint
+> eslint --no-color
+
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\layout\MainLayout.tsx
+  29:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\layout\MainLayout.tsx:29:9
+  27 |
+  28 |     useEffect(() => {
+> 29 |         setIsClient(true);
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |
+  31 |         const checkMobile = () => {
+  32 |             setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);  react-hooks/set-state-in-effect
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\layout\MobileHeader.tsx
+  7:21  warning  'Menu' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\layout\Sidebar.tsx
+  22:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\layout\Sidebar.tsx:22:9
+  20 |
+  21 |     useEffect(() => {
+> 22 |         setIsMounted(true);
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |     }, []);
+  24 |
+  25 |     if (!isMounted) {  react-hooks/set-state-in-effect
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\ui\ThemeSwitcher.tsx
+  30:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\components\ui\ThemeSwitcher.tsx:30:9
+  28 |
+  29 |     useEffect(() => {
+> 30 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |     }, []);
+  32 |
+  33 |     if (!mounted) {  react-hooks/set-state-in-effect
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\lib\navigation\useNavigation.ts
+  22:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\GiovanyDev\Desktop\Cosaas de Gio\Pruebas antigravity\The mirrow 2\frontend\src\lib\navigation\useNavigation.ts:22:9
+  20 |     // Handle hydration and responsive detection
+  21 |     useEffect(() => {
+> 22 |         setIsClient(true);
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |
+  24 |         const checkMobile = () => {
+  25 |             setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);  react-hooks/set-state-in-effect
+
+Γ£û 5 problems (4 errors, 1 warning)
+
