@@ -1,7 +1,6 @@
-"use client";
-
-import { Home, ArrowLeft } from "lucide-react";
+import { Home } from "lucide-react";
 import Link from "next/link";
+import { GoBackButton } from "@/components/ui/GoBackButton";
 
 /**
  * Custom 404 Page with Theme Support
@@ -32,14 +31,9 @@ export default function NotFound() {
                     <Home className="w-5 h-5" />
                     Ir al inicio
                 </Link>
-                <button
-                    onClick={() => window.history.back()}
-                    className="inline-flex items-center gap-2 px-6 py-3 glass-card hover:border-[var(--accent-metallic)] text-[var(--text-primary)] font-semibold rounded-xl transition-all"
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                    Volver atrás
-                </button>
+                <GoBackButton />
             </div>
         </div>
     );
 }
+
