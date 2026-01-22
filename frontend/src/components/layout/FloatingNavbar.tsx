@@ -20,7 +20,7 @@ export function FloatingNavbar() {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-4rem)] max-w-6xl md:ml-[140px]"
         >
             <nav className="flex items-center justify-between gap-4 px-4 py-3 bg-[var(--glass-bg)] backdrop-blur-md border border-[var(--glass-border)] rounded-full shadow-lg shadow-[var(--shadow-color)] transition-colors">
                 {/* Logo */}

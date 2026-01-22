@@ -1,0 +1,93 @@
+﻿
+> frontend@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.2 (Turbopack)
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 3.0s
+  Running TypeScript ...
+node.exe : Failed to 
+compile.
+En línea: 1 
+Carácter: 1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Failed    
+ to compile.:Stri    
+ng) [], RemoteEx    
+ception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+
+./src/components/layo
+ut/Sidebar.tsx:159:42
+Type error: JSX 
+element type 'Icon' 
+does not have any 
+construct or call 
+signatures.
+
+[0m [90m 157 
+|[39m               
+                  
+[33m>[39m
+ [90m 158 |[39m    
+                     
+            [33m<[3
+9m[33mdiv[39m class
+Name[33m=[39m{[32m
+`flex items-center 
+gap-3 ${isCollapsed 
+? 'mx-auto' : 
+''}`[39m}[33m>[39m
+[31m[1m>[22m[39m
+[90m 159 |[39m      
+                     
+              [33m<
+[39m[33mIcon[39m cl
+assName[33m=[39m{[
+32m`w-5 h-5 ${isOpen 
+? 'text-white' : 
+'text-zinc-500 group-
+hover:text-zinc-300'}
+`[39m} [33m/[39m[
+33m>[39m
+ [90m     |[39m    
+                     
+                 
+[31m[1m^[22m[39m
+ [90m 160 |[39m    
+                     
+                {[33
+m![39misCollapsed 
+[33m&&[39m [33m<[
+39m[33mspan[39m[33
+m>[39m{item[33m.[3
+9mtitle}[33m<[39m[
+33m/[39m[33mspan[3
+9m[33m>[39m}
+ [90m 161 |[39m    
+                     
+            [33m<[3
+9m[33m/[39m[33mdiv
+[39m[33m>[39m
+ [90m 162 |[39m    
+                     
+            {[33m![
+39misCollapsed 
+[33m&&[39m ([0m
+Next.js build worker 
+exited with code: 1 
+and signal: null
