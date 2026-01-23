@@ -63,7 +63,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Grid */}
+      {/* Categories Grid - Main navigation area */}
       <section>
         <h2 className="text-2xl font-semibold mb-6 text-[var(--text-primary)]">
           Explora categorías
