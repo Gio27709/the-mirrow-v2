@@ -40,7 +40,7 @@ export default function AdminEventsPage() {
   const [expandedId, setExpandedId] = useState<number|null>(null);
 
   // Form state
-  const [form, setForm] = useState({ title:"",type:"",description:"",date:"",time:"",location:"",venue_name:"",venue_address:"",city:"",capacity:"",min_age:"",dress_code:"",price:"",currency:"€",ticket_url:"",free_entry:false,reservation_required:false,contact_whatsapp:"+34 677 26 71 04",contact_email:"info@themirrow.com",contact_phone:"",contact_instagram:"",organizer_name:"",tags:"",is_featured:false,is_active:true });
+  const [form, setForm] = useState({ title:"",type:"",description:"",date:"",time:"",location:"",venue_name:"",venue_address:"",city:"",capacity:"",min_age:"",dress_code:"",price:"",currency:"€",ticket_url:"",video_promo_url:"",free_entry:false,reservation_required:false,contact_whatsapp:"+34 677 26 71 04",contact_email:"info@themirrow.com",contact_phone:"",contact_instagram:"",organizer_name:"",tags:"",is_featured:false,is_active:true });
   const [imageFile, setImageFile] = useState<File|null>(null);
   const [previewUrl, setPreviewUrl] = useState<string|null>(null);
   const [videoFile, setVideoFile] = useState<File|null>(null);
@@ -76,7 +76,7 @@ export default function AdminEventsPage() {
 
   const resetForm = () => {
     setEditingId(null); setActiveTab(0); setImageFile(null); setPreviewUrl(null); setVideoFile(null); setIsModalOpen(false);
-    setForm({ title:"",type:"",description:"",date:"",time:"",location:"",venue_name:"",venue_address:"",city:"",capacity:"",min_age:"",dress_code:"",price:"",currency:"€",ticket_url:"",free_entry:false,reservation_required:false,contact_whatsapp:"+34 677 26 71 04",contact_email:"info@themirrow.com",contact_phone:"",contact_instagram:"",organizer_name:"",tags:"",is_featured:false,is_active:true });
+    setForm({ title:"",type:"",description:"",date:"",time:"",location:"",venue_name:"",venue_address:"",city:"",capacity:"",min_age:"",dress_code:"",price:"",currency:"€",ticket_url:"",video_promo_url:"",free_entry:false,reservation_required:false,contact_whatsapp:"+34 677 26 71 04",contact_email:"info@themirrow.com",contact_phone:"",contact_instagram:"",organizer_name:"",tags:"",is_featured:false,is_active:true });
   };
 
   const handleEdit = (ev: Event) => {
