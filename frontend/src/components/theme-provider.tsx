@@ -9,15 +9,15 @@ import { type ThemeProviderProps } from "next-themes";
  * Supports: dark, light, grey themes
  */
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-    return (
-        <NextThemesProvider
-            attribute="data-theme"
-            defaultTheme="dark"
-            enableSystem={false}
-            themes={["dark", "light", "grey"]}
-            {...props}
-        >
-            {children}
-        </NextThemesProvider>
-    );
+  return (
+    <NextThemesProvider
+      attribute="data-theme"
+      defaultTheme="dark"
+      enableSystem={false}
+      themes={["dark", "light", "grey"]}
+      {...props}
+    >
+      {children}
+    </NextThemesProvider>
+  );
 }

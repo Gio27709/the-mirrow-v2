@@ -2,26 +2,16 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useCategories } from "@/context/CategoryContext";
+import * as Icons from "lucide-react";
 import {
-    Theater,
-    Music,
-    Disc3,
-    Mic2,
-    Target,
     Mail,
     Instagram,
     Twitter,
     Youtube,
-    Sparkles
+    Sparkles,
+    Layers
 } from "lucide-react";
-
-const categories = [
-    { label: "Teatro", href: "/teatro", icon: Theater },
-    { label: "Músicos", href: "/musicos", icon: Music },
-    { label: "DJs", href: "/djs", icon: Disc3 },
-    { label: "Cantantes", href: "/cantantes", icon: Mic2 },
-    { label: "Billar", href: "/billar", icon: Target },
-];
 
 const socialLinks = [
     { label: "Instagram", href: "#", icon: Instagram },
@@ -35,6 +25,7 @@ const socialLinks = [
  */
 export function Footer() {
     const currentYear = new Date().getFullYear();
+    const { categories } = useCategories();
 
     return (
         <footer className="relative mt-16 border-t border-[var(--border-subtle)]">
@@ -85,16 +76,17 @@ export function Footer() {
                                 Categorías
                             </h4>
                             <ul className="space-y-2">
-                                {categories.map((category) => {
-                                    const Icon = category.icon;
+                                {categories.slice(0, 6).map((category) => {
+                                    // @ts-expect-error: Dynamic icon resolution
+                                    const Icon = Icons[category.icon_name] || Layers;
                                     return (
-                                        <li key={category.label}>
+                                        <li key={category.id}>
                                             <Link
-                                                href={category.href}
+                                                href={`/${category.slug}`}
                                                 className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--accent-metallic)] transition-colors text-sm group"
                                             >
                                                 <Icon className="w-4 h-4 opacity-60 group-hover:opacity-100" />
-                                                {category.label}
+                                                {category.name}
                                             </Link>
                                         </li>
                                     );
@@ -133,6 +125,15 @@ export function Footer() {
                                 >
                                     <Mail className="w-4 h-4" />
                                     info@themirrow.com
+                                </a>
+                                <a
+                                    href="https://wa.me/34677267104"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-emerald-400 transition-colors text-sm"
+                                >
+                                    <span className="text-lg">💬</span>
+                                    +34 677 26 71 04
                                 </a>
                                 <p className="text-[var(--text-muted)] text-xs">
                                     Lunes a Viernes: 9:00 - 18:00

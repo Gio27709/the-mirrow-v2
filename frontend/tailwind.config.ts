@@ -41,18 +41,18 @@ const config: Config = {
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       spacing: {
-        "sidebar": "var(--sidebar-width)",
+        sidebar: "var(--sidebar-width)",
         "sidebar-collapsed": "var(--sidebar-collapsed-width)",
         "bottom-nav": "var(--bottom-nav-height)",
       },
       boxShadow: {
-        "nighty": "0 4px 20px var(--shadow-color)",
+        nighty: "0 4px 20px var(--shadow-color)",
         "metallic-glow": "0 0 20px var(--accent-metallic-glow)",
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-in-out",
         "slide-up": "slideUp 0.3s ease-out",
-        "shimmer": "shimmer 2s linear infinite",
+        shimmer: "shimmer 2s linear infinite",
       },
       keyframes: {
         fadeIn: {

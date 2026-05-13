@@ -53,7 +53,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     }
 
     return (
-        <div className="min-h-screen bg-pure-black overflow-x-hidden">
+        <div className="min-h-screen bg-pure-black overflow-clip">
             {/* Desktop: Sidebar (Fixed) */}
             {!isMobile && (
                 <Sidebar
@@ -77,14 +77,14 @@ export function MainLayout({ children }: MainLayoutProps) {
             >
                 {/* Desktop Header Stack */}
                 {!isMobile && (
-                    <div className="flex flex-col z-30">
+                    <>
                         <TopContactBar />
                         <FloatingNavbar />
-                    </div>
+                    </>
                 )}
 
                 {/* Content wrapper */}
-                <main className="relative z-10 px-4 md:px-6 lg:px-8 flex-1">
+                <main className="relative px-4 md:px-6 lg:px-8 flex-1">
                     {/* Gradient overlay for depth effect on scroll - only on desktop */}
                     {!isMobile && (
                         <div className="pointer-events-none fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-pure-black via-pure-black/80 to-transparent z-20" />
