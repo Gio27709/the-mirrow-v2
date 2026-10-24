@@ -261,14 +261,14 @@ export default function EventDetailPage({
               )}
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight">
+            <h1 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tight leading-tight">
               {event.title}
             </h1>
 
             {event.organizer_name && (
-              <p className="text-lg text-white/70">
+              <p className="text-lg text-[var(--text-secondary)]">
                 Organiza:{" "}
-                <span className="text-white font-medium">
+                <span className="text-[var(--text-primary)] font-medium">
                   {event.organizer_name}
                 </span>
               </p>

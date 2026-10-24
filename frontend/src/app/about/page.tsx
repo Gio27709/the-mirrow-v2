@@ -83,7 +83,7 @@ export default function AboutPage() {
             className="space-y-8"
           >
             <Quote className="w-16 h-16 text-purple-500/50" />
-            <h2 className="text-5xl md:text-7xl font-black text-white leading-tight">
+            <h2 className="text-5xl md:text-7xl font-black text-[var(--text-primary)] leading-tight">
               Creamos con <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
                 sentido.
@@ -115,7 +115,7 @@ export default function AboutPage() {
             >
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/10 rounded-full blur-[40px] group-hover:bg-orange-500/20 transition-all" />
               <p className="text-xl md:text-2xl text-[var(--text-secondary)] font-light leading-relaxed relative z-10">
-                Creemos en la colaboración, en la autenticidad y en el arte como lenguaje universal. No producimos por producir. <strong className="text-white">Hacemos que suceda.</strong>
+                Creemos en la colaboración, en la autenticidad y en el arte como lenguaje universal. No producimos por producir. <strong className="text-[var(--text-primary)]">Hacemos que suceda.</strong>
               </p>
             </motion.div>
           </div>
@@ -125,7 +125,7 @@ export default function AboutPage() {
       {/* Services Section */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-32">
         <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6">Un ecosistema integral</h2>
+          <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] mb-6">Un ecosistema integral</h2>
           <p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto">
             The Mirrow no es solo una plataforma, es un universo de entretenimiento y producción diseñado para artistas y creadores.
           </p>
@@ -142,7 +142,7 @@ export default function AboutPage() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] group-hover:bg-purple-500/20 transition-all" />
             <Star className="w-12 h-12 text-purple-400 mb-8" />
-            <h3 className="text-2xl font-bold text-white mb-4">Representación y Booking</h3>
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">Representación y Booking</h3>
             <p className="text-[var(--text-secondary)] leading-relaxed">
               Contamos con un catálogo exclusivo de artistas, músicos, DJs, cantantes, artes escénicas, danzas contemporáneas y bailes exóticos.
             </p>
@@ -158,7 +158,7 @@ export default function AboutPage() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-[50px] group-hover:bg-pink-500/20 transition-all" />
             <Target className="w-12 h-12 text-pink-400 mb-8" />
-            <h3 className="text-2xl font-bold text-white mb-4">Producción de Eventos</h3>
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">Producción de Eventos</h3>
             <p className="text-[var(--text-secondary)] leading-relaxed">
               Llevamos tu visión a la realidad. Organización integral de eventos públicos y privados, encargándonos de toda la logística.
             </p>
@@ -174,7 +174,7 @@ export default function AboutPage() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[50px] group-hover:bg-blue-500/20 transition-all" />
             <Ticket className="w-12 h-12 text-blue-400 mb-8" />
-            <h3 className="text-2xl font-bold text-white mb-4">Ticketing y Taquilla</h3>
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">Ticketing y Taquilla</h3>
             <p className="text-[var(--text-secondary)] leading-relaxed">
               Si organizas un evento con nosotros, puedes vender tus entradas directamente en nuestra plataforma web. Seguro, rápido y digital.
             </p>
@@ -191,7 +191,7 @@ export default function AboutPage() {
           className="p-16 rounded-[3rem] bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--bg-primary)] border border-white/10 shadow-2xl relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 mix-blend-overlay" />
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-8 relative z-10">
+          <h2 className="text-4xl md:text-5xl font-black text-[var(--text-primary)] mb-8 relative z-10">
             ¿Listo para cruzar el puente?
           </h2>
           <Link href="/contact">

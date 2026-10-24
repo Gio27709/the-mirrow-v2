@@ -87,11 +87,21 @@ export default function EventosPage() {
     fetchEvents();
   }, []);
 
-  const featuredEvent = events.find((e) => e.is_featured);
-  const otherEvents = events.filter((e) => {
+  // Dates are "YYYY-MM-DD": upcoming soonest first, past most recent first
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = events
+    .filter((e) => !e.date || e.date >= today)
+    .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const pastEvents = events
+    .filter((e) => e.date && e.date < today)
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
+    .slice(0, 6);
+
+  const featuredEvent = upcoming.find((e) => e.is_featured);
+  const otherEvents = upcoming.filter((e) => {
     if (filter === "featured") return e.is_featured;
     if (filter === "free") return e.free_entry;
-    return !e.is_featured;
+    return e.id !== featuredEvent?.id;
   });
 
   const getWhatsAppUrl = (eventTitle?: string) => {
@@ -311,7 +321,7 @@ export default function EventosPage() {
                           <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
                             Entradas
                           </p>
-                          <p className="text-xl md:text-2xl font-black text-white">
+                          <p className="text-xl md:text-2xl font-black text-[var(--text-primary)]">
                             {featuredEvent.free_entry
                               ? "Entrada Libre"
                               : featuredEvent.price || "Consultar"}
@@ -342,6 +352,7 @@ export default function EventosPage() {
                 </p>
               </div>
 
+              {upcoming.length > 1 && (
               <div className="flex gap-2">
                 {[
                   { key: "all", label: "Todos" },
@@ -354,13 +365,14 @@ export default function EventosPage() {
                     className={`px-4 py-2 md:px-5 rounded-full font-bold text-xs md:text-sm transition-colors ${
                       filter === f.key
                         ? "bg-[var(--foreground)] text-[var(--background)]"
-                        : "border border-[var(--border-medium)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-hover)]"
+                        : "border border-[var(--border-medium)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-hover)]"
                     }`}
                   >
                     {f.label}
                   </button>
                 ))}
               </div>
+              )}
             </div>
 
             {otherEvents.length > 0 ? (
@@ -468,7 +480,7 @@ export default function EventosPage() {
                         )}
 
                         <div className="flex items-center justify-between">
-                          <span className="text-xl font-bold text-white">
+                          <span className="text-xl font-bold text-[var(--text-primary)]">
                             {event.free_entry
                               ? "Entrada Libre"
                               : event.price || "Consultar"}
@@ -486,13 +498,66 @@ export default function EventosPage() {
               <div className="text-center py-20">
                 <Filter className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
                 <p className="text-[var(--text-secondary)] text-lg">
-                  {events.length === 0
-                    ? "No hay eventos programados aún. ¡Pronto habrá novedades!"
-                    : "No hay eventos con este filtro."}
+                  {upcoming.length === 0
+                    ? "No hay eventos programados por ahora. ¡Pronto anunciaremos nuevas fechas!"
+                    : featuredEvent && upcoming.length === 1 && filter === "all"
+                      ? "Por ahora nuestro próximo evento es el destacado. Muy pronto habrá más fechas."
+                      : "No hay eventos con este filtro."}
                 </p>
+                {upcoming.length === 0 && (
+                  <a
+                    href={getWhatsAppUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" /> Avísame de nuevos eventos
+                  </a>
+                )}
               </div>
             )}
           </section>
+
+          {/* Past Events */}
+          {pastEvents.length > 0 && (
+            <section className="max-w-7xl mx-auto px-4 md:px-6 mt-16 md:mt-24">
+              <h2 className="text-xl md:text-2xl font-bold mb-6 text-[var(--text-primary)]">
+                Eventos anteriores
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pastEvents.map((event) => (
+                  <Link
+                    key={event.id}
+                    href={`/eventos/${event.id}`}
+                    className="group flex gap-4 p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors"
+                  >
+                    <div className="relative w-24 h-20 shrink-0 rounded-xl overflow-hidden bg-[var(--bg-tertiary)]">
+                      {event.image_url && (
+                        <Image
+                          src={event.image_url}
+                          alt={event.title}
+                          fill
+                          className="object-cover grayscale group-hover:grayscale-0 transition-all"
+                          unoptimized
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <p className="font-semibold text-[var(--text-primary)] truncate">{event.title}</p>
+                      <p className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                        <Calendar className="w-3.5 h-3.5" /> {event.date}
+                      </p>
+                      {(event.venue_name || event.location) && (
+                        <p className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] truncate">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" /> {event.venue_name || event.location}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
 

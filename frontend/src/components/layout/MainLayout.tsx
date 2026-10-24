@@ -54,7 +54,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     const showMobile = isClient && isMobile;
 
     return (
-        <div className="min-h-screen bg-pure-black overflow-clip">
+        <div className="min-h-screen bg-[var(--bg-primary)] overflow-clip">
             {/* Desktop: Sidebar (Fixed) */}
             {showDesktop && (
                 <Sidebar
@@ -125,7 +125,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <main className="relative px-4 md:px-6 lg:px-8 flex-1">
                     {/* Gradient overlay for depth effect on scroll - only on desktop */}
                     {showDesktop && (
-                        <div className="pointer-events-none fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-pure-black via-pure-black/80 to-transparent z-20" />
+                        <div className="pointer-events-none fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-[var(--bg-primary)] via-[var(--bg-primary)]/80 to-transparent z-20" />
                     )}
 
                     <div className="pt-2">

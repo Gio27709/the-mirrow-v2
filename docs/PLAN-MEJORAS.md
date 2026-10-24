@@ -54,7 +54,7 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Hecho: datos de contacto únicos en `frontend/src/lib/site.ts`; páginas Privacidad, Términos, Cookies, Carreras, Prensa, Blog, Ayuda y Compañía; buscador (`/buscar`); campana con notificaciones reales; newsletter; solicitud de Plan Pro; consentimiento comercial opcional (RGPD).
 - ⚠️ PENDIENTE del dueño: completar los textos marcados `[completar: …]` en Privacidad y Términos (razón social, NIF/CIF, domicilio, DPD, plazos) y revisarlos con un asesor legal.
 
-## Fase 7 — Eventos, categorías y perfiles ⬜
+## Fase 7 — Eventos, categorías y perfiles ✅
 - `/eventos`: el filtro activo no se distingue; "Cartelera" queda vacía si solo hay el evento destacado.
 - Categorías: gradientes dinámicos no se generan; grid de 2 columnas apretado en móvil; error = 404.
 - Tras reservar entrada, se envía al usuario a una pestaña donde no ve su ticket.

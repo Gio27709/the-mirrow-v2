@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-@theme {
-  --color-pure-black: #000000;
-}
-
 /* ============================================
    THE MIRROW - Dynamic Theme System
    ============================================ */

@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useCategories } from "@/context/CategoryContext";
 import * as Icons from "lucide-react";
 import { api } from "@/lib/api";
+import { gradientStyle } from "@/lib/colors";
 
 // Verified Import Path
 import { TalentCard } from "@/components/talent/TalentCard";
@@ -67,7 +68,7 @@ export default function DynamicCategoryPage() {
   const iconKey = (category.icon_name || "Layers") as keyof typeof Icons;
   const Icon = (Icons[iconKey] || Icons.Layers) as ElementType;
 
-  const gradientClass = `from-${category.gradient_from} to-${category.gradient_to}`;
+  const gradient = gradientStyle(category.gradient_from, category.gradient_to);
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pb-20 transition-colors duration-300">
@@ -75,7 +76,8 @@ export default function DynamicCategoryPage() {
       <div className="relative h-[30vh] md:h-[50vh] overflow-hidden flex items-center justify-center">
         {/* Dynamic Gradient Background */}
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-20`}
+          className="absolute inset-0 opacity-20"
+          style={gradient}
         />
 
         {/* Optional Image Background */}
@@ -97,7 +99,8 @@ export default function DynamicCategoryPage() {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className={`w-16 h-16 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-lg mb-4 md:mb-6`}
+            style={gradient}
+            className="w-16 h-16 md:w-24 md:h-24 mx-auto rounded-full flex items-center justify-center shadow-lg mb-4 md:mb-6"
           >
             <Icon className="w-8 h-8 md:w-12 md:h-12 text-white" />
           </motion.div>
@@ -134,7 +137,7 @@ export default function DynamicCategoryPage() {
         {isLoadingTalents ? (
           <div className="text-center py-20">Buscando artistas...</div>
         ) : talents.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {talents.map((talent, index) => (
               <TalentCard key={talent.id} talent={talent} index={index} />
             ))}
