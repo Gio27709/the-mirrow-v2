@@ -76,7 +76,7 @@ export default function EventosPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const data = await api.get("/events?is_active=true");
+        const data = await api.get("/events/?is_active=true");
         if (data) setEvents(data);
       } catch (error) {
         console.error("Error fetching events:", error);

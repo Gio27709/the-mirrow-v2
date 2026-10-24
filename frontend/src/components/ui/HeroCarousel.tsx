@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 
-interface Slide {
+export interface Slide {
   id: number;
   image: string;
   title: string;
@@ -31,7 +31,7 @@ const defaultSlides: Slide[] = [
     title: "Magia del Teatro",
     description: "Obras que te dejarán sin aliento.",
     ctaText: "Cartelera",
-    ctaLink: "/teatro",
+    ctaLink: "/eventos",
   },
   {
     id: 3,
@@ -43,52 +43,17 @@ const defaultSlides: Slide[] = [
   },
 ];
 
-export function HeroCarousel() {
+export function HeroCarousel({ slides: slidesProp }: { slides?: Slide[] }) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
   const [failedImages, setFailedImages] = useState<number[]>([]);
-  const [slides, setSlides] = useState<Slide[]>(defaultSlides);
+  const slides = slidesProp && slidesProp.length > 0 ? slidesProp : defaultSlides;
   const router = useRouter();
 
+  // Keep the index valid when the slides arrive from the API
   useEffect(() => {
-    const fetchSlides = async () => {
-      try {
-        // Fetch public hero content
-        // Define a type for the API response
-        interface HeroApiItem {
-          id: number;
-          type: string;
-          image_url: string;
-          title: string;
-          subtitle?: string;
-          cta_text?: string;
-          cta_link?: string;
-        }
-
-        const data = await api.get("/hero-content");
-        const carouselItems = (data as HeroApiItem[]).filter(
-          (item) => item.type === "carousel",
-        );
-
-        if (carouselItems.length > 0) {
-          setSlides(
-            carouselItems.map((item) => ({
-              id: item.id,
-              image: item.image_url,
-              title: item.title,
-              description: item.subtitle || "",
-              ctaText: item.cta_text || "Ver más",
-              ctaLink: item.cta_link || "/",
-            })),
-          );
-        }
-      } catch (error) {
-        console.error("Failed to fetch slides", error);
-      }
-    };
-
-    fetchSlides();
-  }, []);
+    setCurrent((c) => (c < slides.length ? c : 0));
+  }, [slides.length]);
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -158,11 +123,9 @@ export function HeroCarousel() {
               paginate(1);
             } else if (swipe > swipeConfidenceThreshold) {
               paginate(-1);
-            } else if (Math.abs(offset.x) < 5) {
-              // If the drag was very small, treat it as a click
-              handleSlideClick();
             }
           }}
+          onTap={handleSlideClick}
           className="absolute inset-0 w-full h-full cursor-pointer"
         >
           {/* Background Image or Premium Fallback */}
@@ -214,10 +177,13 @@ export function HeroCarousel() {
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="pt-1 md:pt-4"
               >
-                <button className="px-5 py-2.5 md:px-8 md:py-3.5 bg-white text-black hover:bg-[var(--accent-metallic)] hover:text-white font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 text-sm md:text-base">
+                <Link
+                  href={slides[current].ctaLink}
+                  className="inline-flex px-5 py-2.5 md:px-8 md:py-3.5 bg-white text-black hover:bg-[var(--accent-metallic)] hover:text-white font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg items-center gap-2 text-sm md:text-base"
+                >
                   {slides[current].ctaText}
                   <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                </button>
+                </Link>
               </motion.div>
             </div>
           </div>

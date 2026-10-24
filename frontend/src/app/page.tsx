@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CategoryCarousel } from "@/components/ui/CategoryCarousel";
 import { HeroGrid } from "@/components/ui/HeroGrid";
 import { HomePromo } from "@/components/ui/HomePromo";
@@ -14,9 +15,7 @@ export default function HomePage() {
       <HomePromo />
 
       {/* Categories Carousel */}
-      <section className="py-4 md:py-8">
-        <CategoryCarousel />
-      </section>
+      <CategoryCarousel />
 
       {/* Eventos Destacados */}
       <HomeEvents />
@@ -35,14 +34,11 @@ export default function HomePage() {
           <p className="text-[var(--text-secondary)] mb-5 md:mb-8 max-w-xl mx-auto text-sm md:text-lg">
             Únete a nuestra comunidad de artistas y profesionales del entretenimiento. Crea tu perfil hoy mismo y lleva tu carrera al siguiente nivel.
           </p>
-          <button className="px-6 py-3 md:px-10 md:py-4 bg-[var(--accent-metallic)] hover:bg-[var(--accent-metallic-hover)] text-[var(--bg-primary)] font-bold rounded-xl md:rounded-2xl transition-all glow-metallic hover:shadow-2xl hover:-translate-y-1 text-sm md:text-base">
+          <Link href="/register" className="inline-block px-6 py-3 md:px-10 md:py-4 bg-[var(--accent-metallic)] hover:bg-[var(--accent-metallic-hover)] text-[var(--bg-primary)] font-bold rounded-xl md:rounded-2xl transition-all glow-metallic hover:shadow-2xl hover:-translate-y-1 text-sm md:text-base">
             Comenzar ahora
-          </button>
+          </Link>
         </div>
       </section>
-
-      {/* Spacer for scroll testing */}
-      <div className="h-8 md:h-20" />
     </div>
   );
 }

@@ -26,9 +26,14 @@ export function HomeEvents() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const data = await api.get("/events?is_active=true");
+        const data: HomeEvent[] = await api.get("/events/?is_active=true");
         if (data) {
-          setEvents(data.slice(0, 4));
+          // Only upcoming events (dates are "YYYY-MM-DD"), soonest first
+          const today = new Date().toISOString().slice(0, 10);
+          const upcoming = data
+            .filter((e) => !e.date || e.date >= today)
+            .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+          setEvents(upcoming.slice(0, 4));
         }
       } catch (error) {
         console.error("Error fetching events:", error);

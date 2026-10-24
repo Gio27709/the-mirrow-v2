@@ -23,11 +23,11 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - `bg-pure-black` no existe en Tailwind v4 (el `tailwind.config.ts` se ignora).
 - `noise.svg` externo devuelve 402 → servirlo local.
 
-## Fase 3 — Página de inicio ⬜
+## Fase 3 — Página de inicio ✅
 - CTA del hero y "Comenzar ahora" no navegan.
 - "Próximos Eventos" muestra eventos pasados y no ordena por fecha.
 - Sección vacía si fallan categorías; espaciador de pruebas; peticiones duplicadas a `/hero-content`.
-- Carrusel de categorías: sin flechas en escritorio y ancho no recalculado.
+- ⬜ (movido a pendientes menores) Carrusel de categorías: sin flechas en escritorio y ancho no recalculado.
 
 ## Fase 4 — Formularios que no funcionan en producción ⬜
 - `/registro` y la subida de imágenes del admin (Portada) apuntan a `localhost:8000`.

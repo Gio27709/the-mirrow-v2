@@ -44,7 +44,7 @@ export function CategoryCarousel() {
   if (categories.length === 0) return null;
 
   return (
-    <div className="w-full pb-4 md:pb-8 pt-0 space-y-2">
+    <section className="w-full py-4 md:py-8 space-y-2">
       <div className="flex items-center justify-between px-4">
         <h2 className="text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
           Explora por Categorías
@@ -116,6 +116,6 @@ export function CategoryCarousel() {
           })}
         </motion.div>
       </motion.div>
-    </div>
+    </section>
   );
 }

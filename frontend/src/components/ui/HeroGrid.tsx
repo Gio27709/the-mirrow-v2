@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HeroCarousel } from "./HeroCarousel";
+import { HeroCarousel, type Slide } from "./HeroCarousel";
 import { PromoCard } from "./PromoCard";
 import { api } from "@/lib/api";
 
@@ -23,7 +23,7 @@ const defaultCards: HeroCard[] = [
       "Descubre quiénes están marcando tendencia este mes en The Mirrow.",
     image_url: "https://cicvwajzdtgvfbsvuttx.supabase.co/storage/v1/object/public/images/static/hero-dj.png",
     cta_text: "Ver Top 10",
-    cta_link: "/musicos",
+    cta_link: "/explore",
     bg_gradient: "from-indigo-900/90 to-purple-900/90",
   },
   {
@@ -32,13 +32,14 @@ const defaultCards: HeroCard[] = [
     subtitle: "No te pierdas las fechas más importantes de la temporada.",
     image_url: "https://cicvwajzdtgvfbsvuttx.supabase.co/storage/v1/object/public/images/static/hero-theater.png",
     cta_text: "Calendario",
-    cta_link: "/teatro",
+    cta_link: "/eventos",
     bg_gradient: "from-slate-900/90 to-zinc-900/90",
   },
 ];
 
 export function HeroGrid() {
   const [cards, setCards] = useState<HeroCard[]>(defaultCards);
+  const [slides, setSlides] = useState<Slide[]>([]);
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -54,8 +55,21 @@ export function HeroGrid() {
           bg_gradient?: string;
         }
 
-        const data = await api.get("/hero-content");
-        const cardItems = (data as HeroApiItem[]).filter((item) => item.type === "card");
+        const data = (await api.get("/hero-content")) as HeroApiItem[];
+        const cardItems = data.filter((item) => item.type === "card");
+
+        setSlides(
+          data
+            .filter((item) => item.type === "carousel")
+            .map((item) => ({
+              id: item.id,
+              image: item.image_url,
+              title: item.title,
+              description: item.subtitle || "",
+              ctaText: item.cta_text || "Ver más",
+              ctaLink: item.cta_link || "/",
+            })),
+        );
 
         if (cardItems.length > 0) {
           setCards(
@@ -85,7 +99,7 @@ export function HeroGrid() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6 h-auto lg:h-[500px]">
         {/* Main Carousel - Takes 2 columns on Desktop */}
         <div className="lg:col-span-2 h-[280px] sm:h-[350px] md:h-[400px] lg:h-full">
-          <HeroCarousel />
+          <HeroCarousel slides={slides} />
         </div>
 
         {/* Side Banners - Takes 1 column on Desktop, side-by-side on mobile */}
