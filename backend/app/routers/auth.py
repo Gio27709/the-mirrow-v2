@@ -90,6 +90,8 @@ def google_login(token_data: schemas.Token, db: Session = Depends(database.get_d
             clock_skew_in_seconds=10
         )
 
+        if not id_info.get('email_verified'):
+            raise HTTPException(status_code=400, detail="Google email not verified")
         email = id_info['email']
         
         # Check if user exists

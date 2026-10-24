@@ -17,7 +17,12 @@ app = FastAPI(title="The Mirrow API")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "*"], # Frontend URL and production
+    allow_origins=[o.strip() for o in os.getenv(
+        "CORS_ORIGINS",
+        "https://the-mirrow-v2frontend.vercel.app,http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",") if o.strip()],
+    # Vercel preview deployments of the frontend
+    allow_origin_regex=r"https://the-mirrow-v2frontend-[a-z0-9-]+\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -3,6 +3,8 @@ uvicorn
 sqlalchemy>=2.0,<2.1
 psycopg2-binary
 passlib[bcrypt]
+# passlib 1.7.4 breaks with bcrypt>=4.1 (login/register crash)
+bcrypt==4.0.1
 python-jose[cryptography]
 python-multipart
 pydantic[email]

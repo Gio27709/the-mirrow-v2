@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --color-pure-black: #000000;
+}
+
 /* ============================================
    THE MIRROW - Dynamic Theme System
    ============================================ */
@@ -13,6 +17,10 @@
   --accent-metallic-hover: #e5e5e5;
   --accent-metallic-dim: #8a8a8a;
   --accent-metallic-glow: rgba(192, 192, 192, 0.3);
+
+  /* Brand accent (buttons, highlights) */
+  --accent-primary: #8b5cf6;
+  --accent-hover: #7c3aed;
 
   /* Layout Dimensions */
   --sidebar-width: 280px;
@@ -45,6 +53,15 @@
   --glass-border: rgba(255, 255, 255, 0.1);
 
   --shadow-color: rgba(0, 0, 0, 0.5);
+
+  /* Aliases used across components */
+  --foreground: var(--text-primary);
+  --background: var(--bg-primary);
+  --card-bg: var(--bg-elevated);
+  --hover-bg: var(--bg-tertiary);
+  --border-color: var(--border-subtle);
+  --border-default: var(--border-subtle);
+  --border-hover: var(--border-medium);
 }
 
 /* ============================================
@@ -72,6 +89,15 @@
   --accent-metallic: #71717a;
   --accent-metallic-hover: #52525b;
   --accent-metallic-dim: #a1a1aa;
+
+  /* Aliases used across components */
+  --foreground: var(--text-primary);
+  --background: var(--bg-primary);
+  --card-bg: var(--bg-elevated);
+  --hover-bg: var(--bg-tertiary);
+  --border-color: var(--border-subtle);
+  --border-default: var(--border-subtle);
+  --border-hover: var(--border-medium);
 }
 
 /* ============================================
@@ -94,6 +120,15 @@
   --glass-border: rgba(255, 255, 255, 0.08);
 
   --shadow-color: rgba(0, 0, 0, 0.4);
+
+  /* Aliases used across components */
+  --foreground: var(--text-primary);
+  --background: var(--bg-primary);
+  --card-bg: var(--bg-elevated);
+  --hover-bg: var(--bg-tertiary);
+  --border-color: var(--border-subtle);
+  --border-default: var(--border-subtle);
+  --border-hover: var(--border-medium);
 }
 
 /* ============================================
@@ -166,6 +201,7 @@ body {
   scrollbar-color: var(--bg-elevated) var(--bg-secondary);
 }
 
+@layer base {
 /* ============================================
    FOCUS STYLES (Accessibility)
    ============================================ */
@@ -189,7 +225,9 @@ button {
   font: inherit;
   color: inherit;
 }
+}
 
+@layer components {
 /* ============================================
    UTILITY CLASSES
    ============================================ */
@@ -325,4 +363,5 @@ button {
     -webkit-mask-image: none;
     mask-image: none;
   }
+}
 }

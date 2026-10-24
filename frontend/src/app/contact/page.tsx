@@ -100,7 +100,7 @@ export default function ContactPage() {
             style={{ animationDelay: "2s" }}
           />
         </div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-15 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-15 mix-blend-overlay pointer-events-none" />
 
         <div className="container mx-auto px-6 relative z-10 text-center space-y-6 max-w-4xl">
           <motion.div

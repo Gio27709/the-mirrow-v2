@@ -35,7 +35,7 @@ export default function AboutPage() {
           {/* Glass Gradients */}
           <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-purple-600/20 rounded-full blur-[150px] mix-blend-screen" />
           <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-blue-600/20 rounded-full blur-[150px] mix-blend-screen" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 mix-blend-overlay" />
         </motion.div>
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
@@ -198,7 +198,7 @@ export default function AboutPage() {
           viewport={{ once: true }}
           className="p-16 rounded-[3rem] bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--bg-primary)] border border-white/10 shadow-2xl relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 mix-blend-overlay" />
           <h2 className="text-4xl md:text-5xl font-black text-white mb-8 relative z-10">
             ¿Listo para cruzar el puente?
           </h2>

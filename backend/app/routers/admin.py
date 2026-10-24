@@ -19,6 +19,17 @@ def get_current_admin(token: str = Depends(auth.oauth2_scheme), db: Session = De
     
     return user
 
+def _is_owner(user: models.User) -> bool:
+    return bool(user.role and user.role.name == "owner")
+
+def _ensure_can_manage(current_admin: models.User, target: models.User, new_role: Optional[str] = None):
+    """Only the owner may manage admins or grant the admin role; nobody can grant owner."""
+    if new_role == "owner":
+        raise HTTPException(status_code=403, detail="Cannot assign Owner role")
+    target_is_admin = bool(target.role and target.role.name == "admin")
+    if (target_is_admin or new_role == "admin") and not _is_owner(current_admin):
+        raise HTTPException(status_code=403, detail="Only the Owner can manage admins")
+
 @router.put("/admin/users/{user_id}/role")
 def update_user_role(
     user_id: int, 
@@ -33,7 +44,8 @@ def update_user_role(
     # OWNER PROTECTION
     if target_user.role and target_user.role.name == "owner":
         raise HTTPException(status_code=403, detail="Cannot modify Owner role")
-        
+    _ensure_can_manage(current_admin, target_user, role)
+
     # Find Role ID
     role_obj = db.query(models.Role).filter(models.Role.name == role).first()
     if not role_obj:
@@ -55,6 +67,7 @@ def delete_user(
         
     if user.role and user.role.name == "owner":
         raise HTTPException(status_code=403, detail="Cannot delete Owner")
+    _ensure_can_manage(current_admin, user)
         
     if user.id == current_admin.id:
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
@@ -63,7 +76,7 @@ def delete_user(
     db.commit()
     return {"status": "deleted"}
 
-@router.put("/admin/users/{user_id}")
+@router.put("/admin/users/{user_id}", response_model=schemas.UserResponse)
 def update_user_details_admin(
     user_id: int,
     full_name: Optional[str] = None,
@@ -78,6 +91,8 @@ def update_user_details_admin(
         
     if user.role and user.role.name == "owner" and current_admin.id != user.id:
          raise HTTPException(status_code=403, detail="Cannot edit Owner")
+    if current_admin.id != user.id:
+        _ensure_can_manage(current_admin, user, role)
 
     # Role Update Logic
     if role is not None:
@@ -125,5 +140,5 @@ def get_admin_stats(admin: models.User = Depends(get_current_admin), db: Session
         "active_users": active_users,
         "google_users": google_users,
         "email_users": email_users,
-        "recent_users": recent_users
+        "recent_users": [schemas.UserResponse.model_validate(u) for u in recent_users]
     }

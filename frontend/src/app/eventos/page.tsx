@@ -124,7 +124,7 @@ export default function EventosPage() {
         </div>
 
         {/* Grid Overlay */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
 
         <div className="container mx-auto px-6 relative z-10 text-center space-y-8">
           <motion.div
@@ -511,7 +511,7 @@ export default function EventosPage() {
           viewport={{ once: true }}
           className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-purple-900/40 to-pink-900/20 border border-purple-500/30 p-6 md:p-10 lg:p-16 text-center"
         >
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
+          <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-purple-500/20 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="relative z-10 space-y-8 max-w-3xl mx-auto">
