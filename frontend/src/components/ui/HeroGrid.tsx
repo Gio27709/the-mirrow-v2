@@ -82,14 +82,14 @@ export function HeroGrid() {
 
   return (
     <section className="w-full pb-0 pt-2">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[500px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6 h-auto lg:h-[500px]">
         {/* Main Carousel - Takes 2 columns on Desktop */}
-        <div className="lg:col-span-2 h-[400px] lg:h-full">
+        <div className="lg:col-span-2 h-[280px] sm:h-[350px] md:h-[400px] lg:h-full">
           <HeroCarousel />
         </div>
 
-        {/* Side Banners - Takes 1 column on Desktop, stacked vertically */}
-        <div className="lg:col-span-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 h-full">
+        {/* Side Banners - Takes 1 column on Desktop, side-by-side on mobile */}
+        <div className="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-3 md:gap-6 h-auto lg:h-full">
           {cards.map((card, index) => (
             <PromoCard
               key={card.id}

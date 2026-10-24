@@ -11,9 +11,13 @@ import { useAuth } from "@/context/AuthContext";
 
 /**
  * Mobile Header Component
- * Displays logo, search bar, theme switcher, and auth controls on mobile devices
+ * Displays hamburger menu, logo, search bar, theme switcher, and auth controls on mobile devices
  */
-export function MobileHeader() {
+interface MobileHeaderProps {
+  onMenuToggle?: () => void;
+}
+
+export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, logout } = useAuth();
@@ -43,10 +47,24 @@ export function MobileHeader() {
       <div className="bg-[var(--bg-secondary)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] px-4 py-3 transition-colors relative">
         {/* Main Header Row */}
         <div className="flex items-center justify-between gap-3">
-          {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0">
-            <Logo className="scale-[0.85] origin-left" />
-          </Link>
+          {/* Hamburger Menu Button */}
+          <div className="flex items-center gap-2 shrink-0">
+            {onMenuToggle && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={onMenuToggle}
+                className="w-9 h-9 rounded-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                aria-label="Abrir menú"
+              >
+                <Menu className="w-5 h-5" />
+              </motion.button>
+            )}
+
+            {/* Logo */}
+            <Link href="/" className="flex items-center">
+              <Logo className="scale-[0.85] origin-left" />
+            </Link>
+          </div>
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">

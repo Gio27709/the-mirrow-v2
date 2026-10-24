@@ -28,13 +28,17 @@ export function MainLayout({ children }: MainLayoutProps) {
     const [isClient, setIsClient] = useState(false);
 
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsClient(true);
 
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+            const mobile = window.innerWidth < MOBILE_BREAKPOINT;
+            setIsMobile(mobile);
+            // Close mobile sidebar if resizing to desktop
+            if (!mobile) setIsMobileSidebarOpen(false);
         };
 
         checkMobile();
@@ -63,7 +67,40 @@ export function MainLayout({ children }: MainLayoutProps) {
             )}
 
             {/* Mobile: Header with search and theme */}
-            {isMobile && <MobileHeader />}
+            {isMobile && (
+                <MobileHeader
+                    onMenuToggle={() => setIsMobileSidebarOpen(true)}
+                />
+            )}
+
+            {/* Mobile: Sidebar Drawer Overlay */}
+            {isMobile && isMobileSidebarOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55]"
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                    />
+                    {/* Sidebar as drawer */}
+                    <motion.div
+                        initial={{ x: -300 }}
+                        animate={{ x: 0 }}
+                        exit={{ x: -300 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        className="fixed left-0 top-0 bottom-0 z-[60] w-[280px]"
+                    >
+                        <Sidebar
+                            isCollapsed={false}
+                            setIsCollapsed={() => {}}
+                            isMobileDrawer
+                            onMobileClose={() => setIsMobileSidebarOpen(false)}
+                        />
+                    </motion.div>
+                </>
+            )}
 
             {/* Main Content Area (Wraps TopBar, Navbar, and Page Content) */}
             <motion.div

@@ -289,3 +289,40 @@ button {
 .border-accent {
   border-color: var(--accent-metallic);
 }
+
+/* ============================================
+   MOBILE UTILITIES
+   ============================================ */
+
+/* Horizontal scroll container - hides scrollbar for clean swipe UX */
+.mobile-scroll-x {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-scroll-x > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Fade edge hint for horizontal scroll */
+.scroll-fade-right {
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+@media (min-width: 768px) {
+  .scroll-fade-right {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}

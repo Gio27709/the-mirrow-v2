@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star, Music, MapPin } from "lucide-react";
 
-interface TalentProfile {
+export interface TalentProfile {
   id: number;
   stage_name: string;
   category: string;

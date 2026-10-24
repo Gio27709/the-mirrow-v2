@@ -72,7 +72,7 @@ export default function DynamicCategoryPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pb-20 transition-colors duration-300">
       {/* Hero Section */}
-      <div className="relative h-[40vh] md:h-[50vh] overflow-hidden flex items-center justify-center">
+      <div className="relative h-[30vh] md:h-[50vh] overflow-hidden flex items-center justify-center">
         {/* Dynamic Gradient Background */}
         <div
           className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-20`}
@@ -92,21 +92,21 @@ export default function DynamicCategoryPage() {
           </div>
         )}
 
-        <div className="relative z-10 text-center space-y-4 px-4">
+        <div className="relative z-10 text-center space-y-3 md:space-y-4 px-4">
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className={`w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-lg mb-6`}
+            className={`w-16 h-16 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-lg mb-4 md:mb-6`}
           >
-            <Icon className="w-10 h-10 md:w-12 md:h-12 text-white" />
+            <Icon className="w-8 h-8 md:w-12 md:h-12 text-white" />
           </motion.div>
 
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]"
+            className="text-3xl md:text-6xl font-bold text-[var(--text-primary)]"
           >
             {category.name}
           </motion.h1>
@@ -115,7 +115,7 @@ export default function DynamicCategoryPage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto"
+            className="text-sm md:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto"
           >
             {category.description}
           </motion.p>
@@ -123,18 +123,18 @@ export default function DynamicCategoryPage() {
 
         <Link
           href="/"
-          className="absolute top-6 left-6 z-20 p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-[var(--text-primary)]"
+          className="hidden md:block absolute top-6 left-6 z-20 p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-[var(--text-primary)]"
         >
           <ArrowLeft className="w-6 h-6" />
         </Link>
       </div>
 
       {/* Talents Grid */}
-      <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 -mt-10 md:-mt-20 relative z-20">
         {isLoadingTalents ? (
           <div className="text-center py-20">Searching talents...</div>
         ) : talents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {talents.map((talent, index) => (
               <TalentCard key={talent.id} talent={talent} index={index} />
             ))}

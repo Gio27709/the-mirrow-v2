@@ -4,8 +4,8 @@ import { PromoCard } from "@/components/ui/PromoCard";
 
 export function HomePromo() {
   return (
-    <section className="py-12">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <section className="py-4 md:py-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
         <PromoCard
           title="Organiza tu Evento"
           subtitle="Lleva tu producción al siguiente nivel. Cotiza y contrata artistas, logística y marketing en un solo lugar."

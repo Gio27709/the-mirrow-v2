@@ -28,9 +28,11 @@ import { useAuth } from "@/context/AuthContext";
 interface SidebarProps {
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+  isMobileDrawer?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
+export function Sidebar({ isCollapsed, setIsCollapsed, isMobileDrawer = false, onMobileClose }: SidebarProps) {
   const { user } = useAuth();
   const { mergedNavItems } = useCategories();
   const pathname = usePathname();
@@ -50,8 +52,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   // Helper to check if a route is active
   const isRouteActive = (href: string) => pathname === href;
 
-  // Derived state
-  const isActuallyCollapsed = isCollapsed && !isHovered;
+  // Derived state — when mobile drawer, always expanded
+  const isActuallyCollapsed = isMobileDrawer ? false : (isCollapsed && !isHovered);
 
   // Filter Navigation Items based on Role
   const filteredNavItems = mergedNavItems.filter((item) => {
@@ -117,29 +119,29 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       animate={{
         x: 0,
         opacity: 1,
-        width: isActuallyCollapsed ? 80 : 280,
+        width: isMobileDrawer ? 280 : (isActuallyCollapsed ? 80 : 280),
       }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed left-0 top-0 z-[60] h-screen flex flex-col text-[var(--text-secondary)]"
+      className={`${isMobileDrawer ? 'relative w-full' : 'fixed left-0 top-0 z-[60]'} h-screen flex flex-col text-[var(--text-secondary)]`}
     >
       {/* Inner Container for Content (Handles Overflow & Background) */}
       {/* Hover Handlers moved here so the BUTTON doesn't trigger 'isHovered' */}
       <div
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={isMobileDrawer ? undefined : handleMouseEnter}
+        onMouseLeave={isMobileDrawer ? undefined : handleMouseLeave}
         className="h-full w-full flex flex-col overflow-hidden bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] relative z-20 transition-colors duration-300"
       >
         {/* Header / Logo */}
-        <div className="flex items-center h-20 px-5 border-b border-[var(--border-subtle)] shrink-0 overflow-hidden">
+        <div className="flex items-center justify-between h-20 px-5 border-b border-[var(--border-subtle)] shrink-0 overflow-hidden">
           <AnimatePresence mode="wait">
             {!isActuallyCollapsed && (
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                className="w-full"
+                className="flex-1"
               >
-                <Link href="/" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2" onClick={isMobileDrawer ? onMobileClose : undefined}>
                   <div className="shrink-0 w-12 flex items-center">
                     <Logo showText={false} className="scale-[0.5] origin-left -ml-4" />
                   </div>
@@ -150,6 +152,17 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Mobile drawer close button */}
+          {isMobileDrawer && onMobileClose && (
+            <button
+              onClick={onMobileClose}
+              className="w-9 h-9 rounded-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors shrink-0 ml-2"
+              aria-label="Cerrar menú"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Collapsed Logo Fallback */}
           {isActuallyCollapsed && (
@@ -226,6 +239,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 ) : (
                   <Link
                     href={item.href}
+                    onClick={isMobileDrawer ? onMobileClose : undefined}
                     className={`
                                         flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
                                         ${
@@ -259,6 +273,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                           <Link
                             key={subItem.title}
                             href={subItem.href}
+                            onClick={isMobileDrawer ? onMobileClose : undefined}
                             className={`
                                                         flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors
                                                         ${
@@ -323,17 +338,19 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         </div>
       </div>
 
-      {/* Unified Toggle Button - "Inner Glow" Style & Centered */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-1/2 -translate-y-1/2 -right-3 w-6 h-6 rounded-full flex items-center justify-center transition-all z-50 bg-indigo-600 border border-white/20 text-white hover:scale-110 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.3)]"
-      >
-        {isActuallyCollapsed ? (
-          <ChevronRight className="w-3 h-3" />
-        ) : (
-          <ChevronLeft className="w-3 h-3" />
-        )}
-      </button>
+      {/* Unified Toggle Button - Only on desktop, hidden in mobile drawer */}
+      {!isMobileDrawer && (
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute top-1/2 -translate-y-1/2 -right-3 w-6 h-6 rounded-full flex items-center justify-center transition-all z-50 bg-indigo-600 border border-white/20 text-white hover:scale-110 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.3)]"
+        >
+          {isActuallyCollapsed ? (
+            <ChevronRight className="w-3 h-3" />
+          ) : (
+            <ChevronLeft className="w-3 h-3" />
+          )}
+        </button>
+      )}
     </motion.aside>
   );
 }

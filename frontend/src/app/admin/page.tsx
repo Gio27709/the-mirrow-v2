@@ -86,7 +86,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-2">
           Dashboard
         </h1>
         <p className="text-[var(--text-secondary)]">
@@ -95,24 +95,24 @@ export default function AdminDashboard() {
       </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {cards.map((card, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="p-6 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors"
+            className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors"
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3 md:mb-4">
               <div className={`p-3 rounded-xl ${card.bg}`}>
                 <card.icon className={`w-6 h-6 ${card.color}`} />
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-[var(--text-primary)] mb-1">
+            <h3 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-1">
               {card.value}
             </h3>
-            <p className="text-sm text-[var(--text-secondary)]">{card.title}</p>
+            <p className="text-xs md:text-sm text-[var(--text-secondary)]">{card.title}</p>
           </motion.div>
         ))}
       </div>

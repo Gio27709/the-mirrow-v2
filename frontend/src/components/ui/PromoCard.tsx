@@ -31,7 +31,7 @@ export function PromoCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, duration: 0.5 }}
-      className="group relative h-full min-h-[240px] w-full overflow-hidden rounded-2xl border border-[var(--border-subtle)] shadow-lg"
+      className="group relative h-full min-h-[160px] md:min-h-[240px] w-full overflow-hidden rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-lg"
     >
       {/* Background Image or Premium Fallback */}
       {!imageError ? (
@@ -60,21 +60,21 @@ export function PromoCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80" />
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-between p-6">
+      <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-6">
         <div>
-          <h3 className="text-2xl font-bold text-white mb-2 leading-tight">
+          <h3 className="text-sm md:text-2xl font-bold text-white mb-1 md:mb-2 leading-tight">
             {title}
           </h3>
-          <p className="text-white/80 text-sm font-medium line-clamp-2">
+          <p className="text-white/80 text-[10px] md:text-sm font-medium line-clamp-2">
             {subtitle}
           </p>
         </div>
 
         <div className="flex justify-end">
           <Link href={ctaLink}>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-white text-sm font-semibold transition-all group-hover:translate-x-1">
+            <button className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-white text-[10px] md:text-sm font-semibold transition-all group-hover:translate-x-1">
               {ctaText}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
             </button>
           </Link>
         </div>

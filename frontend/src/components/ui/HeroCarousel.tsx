@@ -134,7 +134,7 @@ export function HeroCarousel() {
   };
 
   return (
-    <div className="relative w-full h-full min-h-[400px] lg:min-h-[500px] overflow-hidden rounded-2xl shadow-2xl group border border-[var(--border-subtle)]">
+    <div className="relative w-full h-full min-h-[240px] sm:min-h-[320px] md:min-h-[400px] lg:min-h-[500px] overflow-hidden rounded-xl md:rounded-2xl shadow-2xl group border border-[var(--border-subtle)]">
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={current}
@@ -188,13 +188,13 @@ export function HeroCarousel() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
           {/* Content */}
-          <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
-            <div className="max-w-2xl space-y-4">
+          <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 md:p-8 lg:p-12">
+            <div className="max-w-2xl space-y-2 md:space-y-4">
               <motion.h2
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-none drop-shadow-xl"
+                className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white tracking-tight leading-none drop-shadow-xl"
               >
                 {slides[current].title}
               </motion.h2>
@@ -203,7 +203,7 @@ export function HeroCarousel() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-lg md:text-xl text-gray-200 font-medium max-w-lg drop-shadow-md"
+                className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 font-medium max-w-lg drop-shadow-md line-clamp-2 md:line-clamp-none"
               >
                 {slides[current].description}
               </motion.p>
@@ -212,11 +212,11 @@ export function HeroCarousel() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="pt-4"
+                className="pt-1 md:pt-4"
               >
-                <button className="px-8 py-3.5 bg-white text-black hover:bg-[var(--accent-metallic)] hover:text-white font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2">
+                <button className="px-5 py-2.5 md:px-8 md:py-3.5 bg-white text-black hover:bg-[var(--accent-metallic)] hover:text-white font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 text-sm md:text-base">
                   {slides[current].ctaText}
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
               </motion.div>
             </div>
@@ -224,8 +224,8 @@ export function HeroCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Controls */}
-      <div className="absolute bottom-8 right-8 flex items-center gap-4 z-20">
+      {/* Controls - Hidden on mobile, swipe is enough */}
+      <div className="hidden md:flex absolute bottom-8 right-8 items-center gap-4 z-20">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -247,7 +247,7 @@ export function HeroCarousel() {
       </div>
 
       {/* Pagination Dots (Bottom Center) */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-3 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10">
+      <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2 md:gap-3 p-1.5 md:p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10">
         {slides.map((_, index) => (
           <button
             key={index}

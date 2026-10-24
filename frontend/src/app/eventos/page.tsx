@@ -103,16 +103,16 @@ export default function EventosPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pb-24 selection:bg-purple-500 selection:text-white overflow-clip">
-      {/* Back Button */}
+      {/* Back Button - hidden on mobile since MobileHeader handles nav */}
       <Link
         href="/"
-        className="fixed top-6 left-6 z-50 p-3 bg-black/20 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/40 transition-all text-white shadow-lg"
+        className="hidden md:block fixed top-6 left-6 z-50 p-3 bg-black/20 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/40 transition-all text-white shadow-lg"
       >
         <ArrowLeft className="w-6 h-6" />
       </Link>
 
       {/* Hero Section */}
-      <section className="relative min-h-[75vh] flex items-center justify-center pt-20 overflow-hidden">
+      <section className="relative min-h-[50vh] md:min-h-[75vh] flex items-center justify-center pt-10 md:pt-20 overflow-hidden">
         {/* Animated Background Gradients */}
         <div className="absolute inset-0 bg-[var(--bg-primary)]">
           <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
@@ -131,7 +131,7 @@ export default function EventosPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl"
+            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl"
           >
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span className="text-sm font-semibold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
@@ -143,7 +143,7 @@ export default function EventosPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="text-6xl md:text-8xl font-black tracking-tighter"
+            className="text-3xl md:text-6xl lg:text-8xl font-black tracking-tighter"
           >
             Experiencias{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500">
@@ -155,7 +155,7 @@ export default function EventosPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-xl md:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed"
+            className="text-base md:text-xl lg:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed"
           >
             Descubre los eventos exclusivos organizados por The Mirrow y nuestra
             comunidad de artistas. Conciertos, galas, teatro y producciones de
@@ -173,7 +173,7 @@ export default function EventosPage() {
         <>
           {/* Featured Event Section */}
           {featuredEvent && (
-            <section className="relative z-20 -mt-20 px-6 max-w-7xl mx-auto">
+            <section className="relative z-20 -mt-10 md:-mt-20 px-4 md:px-6 max-w-7xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -181,11 +181,11 @@ export default function EventosPage() {
               >
                 <Link
                   href={`/eventos/${featuredEvent.id}`}
-                  className="block relative rounded-[2.5rem] overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border-subtle)] shadow-[0_0_50px_rgba(0,0,0,0.5)] group hover:border-purple-500/50 hover:shadow-[0_0_60px_rgba(168,85,247,0.2)] transition-all duration-500"
+                  className="block relative rounded-2xl md:rounded-[2.5rem] overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border-subtle)] shadow-[0_0_50px_rgba(0,0,0,0.5)] group hover:border-purple-500/50 hover:shadow-[0_0_60px_rgba(168,85,247,0.2)] transition-all duration-500"
                 >
                 <div className="grid lg:grid-cols-2 gap-0">
                   {/* Image Side */}
-                  <div className="relative h-[400px] lg:h-auto overflow-hidden">
+                  <div className="relative h-[250px] md:h-[400px] lg:h-auto overflow-hidden">
                     {featuredEvent.image_url ? (
                       <Image
                         src={featuredEvent.image_url}
@@ -202,16 +202,16 @@ export default function EventosPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-elevated)] lg:bg-gradient-to-r lg:from-transparent to-transparent opacity-100" />
 
                     {/* Badge */}
-                    <div className="absolute top-6 left-6 bg-purple-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg flex items-center gap-2 backdrop-blur-md">
+                    <div className="absolute top-4 left-4 md:top-6 md:left-6 bg-purple-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold text-xs md:text-sm shadow-lg flex items-center gap-1.5 md:gap-2 backdrop-blur-md">
                       <Star className="w-4 h-4 fill-white" /> Evento Destacado
                     </div>
                   </div>
 
                   {/* Content Side */}
-                  <div className="p-10 md:p-16 flex flex-col justify-center relative bg-[var(--bg-elevated)]">
+                  <div className="p-5 md:p-10 lg:p-16 flex flex-col justify-center relative bg-[var(--bg-elevated)]">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
 
-                    <div className="relative z-10 space-y-6">
+                    <div className="relative z-10 space-y-4 md:space-y-6">
                       {featuredEvent.tags && (
                         <div className="flex gap-3 flex-wrap">
                           {featuredEvent.tags.split(",").map((tag) => (
@@ -225,7 +225,7 @@ export default function EventosPage() {
                         </div>
                       )}
 
-                      <h2 className="text-4xl font-bold text-[var(--text-primary)]">
+                      <h2 className="text-2xl md:text-4xl font-bold text-[var(--text-primary)]">
                         {featuredEvent.title}
                       </h2>
 
@@ -233,7 +233,7 @@ export default function EventosPage() {
                         {featuredEvent.date && (
                           <div className="flex items-center gap-3">
                             <Calendar className="w-5 h-5 text-purple-400" />
-                            <span className="font-medium text-lg">
+                            <span className="font-medium text-base md:text-lg">
                               {featuredEvent.date}
                             </span>
                           </div>
@@ -313,19 +313,19 @@ export default function EventosPage() {
                           </div>
                         )}
 
-                      <div className="pt-6 mt-6 border-t border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-4">
+                      <div className="pt-4 md:pt-6 mt-4 md:mt-6 border-t border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3 md:gap-4">
                         <div>
                           <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
                             Entradas
                           </p>
-                          <p className="text-2xl font-black text-white">
+                          <p className="text-xl md:text-2xl font-black text-white">
                             {featuredEvent.free_entry
                               ? "Entrada Libre"
                               : featuredEvent.price || "Consultar"}
                           </p>
                         </div>
                         <div
-                          className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 rounded-2xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2"
+                          className="bg-[var(--foreground)] text-[var(--background)] px-5 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 text-sm md:text-base"
                         >
                           <Ticket className="w-5 h-5" />
                           Ver Detalles
@@ -340,10 +340,10 @@ export default function EventosPage() {
           )}
 
           {/* Events Grid */}
-          <section className="max-w-7xl mx-auto px-6 mt-32">
+          <section className="max-w-7xl mx-auto px-4 md:px-6 mt-16 md:mt-32">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
               <div>
-                <h2 className="text-3xl font-bold mb-2">Cartelera Oficial</h2>
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Cartelera Oficial</h2>
                 <p className="text-[var(--text-secondary)]">
                   Próximos eventos y producciones de nuestra red de talentos.
                 </p>
@@ -358,7 +358,7 @@ export default function EventosPage() {
                   <button
                     key={f.key}
                     onClick={() => setFilter(f.key)}
-                    className={`px-5 py-2 rounded-full font-bold text-sm transition-colors ${
+                    className={`px-4 py-2 md:px-5 rounded-full font-bold text-xs md:text-sm transition-colors ${
                       filter === f.key
                         ? "bg-[var(--foreground)] text-[var(--background)]"
                         : "border border-[var(--border-medium)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-hover)]"
@@ -371,7 +371,7 @@ export default function EventosPage() {
             </div>
 
             {otherEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 {otherEvents.map((event, i) => (
                   <motion.div
                     key={event.id}
@@ -379,7 +379,7 @@ export default function EventosPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.15 }}
-                    className="group relative bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-3xl overflow-hidden hover:border-purple-500/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]"
+                    className="group relative bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-2xl md:rounded-3xl overflow-hidden hover:border-purple-500/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]"
                   >
                     <Link href={`/eventos/${event.id}`}>
                       <div className="aspect-[16/9] relative overflow-hidden">
@@ -420,12 +420,12 @@ export default function EventosPage() {
                         )}
                       </div>
 
-                      <div className="p-8 relative">
-                        <h3 className="text-2xl font-bold mb-4 group-hover:text-purple-400 transition-colors">
+                      <div className="p-5 md:p-8 relative">
+                        <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-purple-400 transition-colors">
                           {event.title}
                         </h3>
 
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
                           <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
                             <Calendar className="w-4 h-4" />
                             <span>
@@ -457,7 +457,7 @@ export default function EventosPage() {
 
                         {/* Zones Mini */}
                         {event.zones && event.zones.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-6">
+                          <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4 md:mb-6">
                             {event.zones.map((zone) => (
                               <span
                                 key={zone.id}
@@ -480,7 +480,7 @@ export default function EventosPage() {
                               ? "Entrada Libre"
                               : event.price || "Consultar"}
                           </span>
-                          <span className="text-sm font-bold bg-[var(--bg-secondary)] hover:bg-[var(--foreground)] text-[var(--text-primary)] hover:text-[var(--background)] px-6 py-2.5 rounded-xl transition-all flex items-center gap-2">
+                          <span className="text-sm font-bold bg-[var(--bg-secondary)] hover:bg-[var(--foreground)] text-[var(--text-primary)] hover:text-[var(--background)] px-4 py-2 md:px-6 md:py-2.5 rounded-xl transition-all flex items-center gap-2 text-xs md:text-sm">
                             Ver Detalles <ArrowRight className="w-4 h-4" />
                           </span>
                         </div>
@@ -504,21 +504,21 @@ export default function EventosPage() {
       )}
 
       {/* Cotizar Evento CTA */}
-      <section className="max-w-5xl mx-auto px-6 mt-32 relative z-20">
+      <section className="max-w-5xl mx-auto px-4 md:px-6 mt-16 md:mt-32 relative z-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-purple-900/40 to-pink-900/20 border border-purple-500/30 p-10 md:p-16 text-center"
+          className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-purple-900/40 to-pink-900/20 border border-purple-500/30 p-6 md:p-10 lg:p-16 text-center"
         >
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-purple-500/20 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="relative z-10 space-y-8 max-w-3xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-black text-white">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black text-white">
               ¿Quieres organizar un evento inolvidable?
             </h2>
-            <p className="text-xl text-purple-100/80">
+            <p className="text-base md:text-xl text-purple-100/80">
               Cotiza la producción de tu propio evento. Desde la planificación,
               logística, hasta la contratación de talentos, nosotros nos
               encargamos de todo.
@@ -527,7 +527,7 @@ export default function EventosPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link
                 href="/contact"
-                className="w-full sm:w-auto bg-white text-purple-950 px-8 py-4 rounded-2xl font-bold hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-white text-purple-950 px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl font-bold hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 text-sm md:text-base"
               >
                 <Mail className="w-5 h-5 text-purple-950" />
                 <span className="text-purple-950">Cotizar Evento</span>
@@ -536,7 +536,7 @@ export default function EventosPage() {
                 href={getWhatsAppUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-sm md:text-base"
               >
                 <MessageCircle className="w-5 h-5" />
                 WhatsApp Directo

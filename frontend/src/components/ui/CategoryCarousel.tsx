@@ -25,15 +25,15 @@ export function CategoryCarousel() {
     return (
       <div className="w-full pb-8 pt-0 space-y-2">
         <div className="px-4">
-          <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
             Explora por Categorías
           </h2>
         </div>
-        <div className="flex gap-6 px-4 py-2">
+        <div className="flex gap-4 md:gap-6 px-4 py-2">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex-shrink-0 flex flex-col items-center gap-4 w-40">
-              <div className="w-36 h-36 rounded-full bg-[var(--bg-secondary)] animate-pulse" />
-              <div className="w-20 h-4 rounded bg-[var(--bg-secondary)] animate-pulse" />
+            <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2 md:gap-4 w-24 md:w-40">
+              <div className="w-20 h-20 md:w-36 md:h-36 rounded-full bg-[var(--bg-secondary)] animate-pulse" />
+              <div className="w-16 md:w-20 h-3 md:h-4 rounded bg-[var(--bg-secondary)] animate-pulse" />
             </div>
           ))}
         </div>
@@ -44,14 +44,15 @@ export function CategoryCarousel() {
   if (categories.length === 0) return null;
 
   return (
-    <div className="w-full pb-8 pt-0 space-y-2">
+    <div className="w-full pb-4 md:pb-8 pt-0 space-y-2">
       <div className="flex items-center justify-between px-4">
-        <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
           Explora por Categorías
         </h2>
         {/* Visual indicator of interactivity */}
-        <span className="text-sm text-[var(--text-secondary)] hidden md:block opacity-60">
-          Arrastra para explorar
+        <span className="text-xs md:text-sm text-[var(--text-secondary)] opacity-60">
+          <span className="md:hidden">Desliza →</span>
+          <span className="hidden md:block">Arrastra para explorar</span>
         </span>
       </div>
 
@@ -63,7 +64,7 @@ export function CategoryCarousel() {
           drag="x"
           dragConstraints={{ right: 0, left: -width }}
           whileTap={{ cursor: "grabbing" }}
-          className="flex gap-6"
+          className="flex gap-4 md:gap-6"
         >
           {categories.map((cat) => {
             const Icon =
@@ -81,10 +82,10 @@ export function CategoryCarousel() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex flex-col items-center gap-4 w-40"
+                  className="flex flex-col items-center gap-2 md:gap-4 w-24 md:w-40"
                 >
                   {/* Circular Image Container */}
-                  <div className="relative w-36 h-36 rounded-full overflow-hidden shadow-2xl border-2 border-transparent group-hover:border-[var(--accent-metallic)] transition-all duration-300 pointer-events-none">
+                  <div className="relative w-20 h-20 md:w-36 md:h-36 rounded-full overflow-hidden shadow-xl md:shadow-2xl border-2 border-transparent group-hover:border-[var(--accent-metallic)] transition-all duration-300 pointer-events-none">
                     {cat.banner_url || cat.image_url ? (
                       <Image
                         src={cat.banner_url || cat.image_url}
@@ -99,14 +100,14 @@ export function CategoryCarousel() {
 
                     {/* Icon Overlay - Centered and Larger */}
                     <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <div className="p-5 bg-black/30 backdrop-blur-sm rounded-full group-hover:bg-[var(--accent-metallic)] group-hover:text-white transition-all duration-300 shadow-xl border border-white/10">
-                        <Icon className="w-12 h-12 text-white/90" />
+                      <div className="p-3 md:p-5 bg-black/30 backdrop-blur-sm rounded-full group-hover:bg-[var(--accent-metallic)] group-hover:text-white transition-all duration-300 shadow-xl border border-white/10">
+                        <Icon className="w-7 h-7 md:w-12 md:h-12 text-white/90" />
                       </div>
                     </div>
                   </div>
 
                   {/* Label */}
-                  <span className="text-base font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors text-center select-none uppercase tracking-wider">
+                  <span className="text-xs md:text-base font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors text-center select-none uppercase tracking-wider leading-tight">
                     {cat.name}
                   </span>
                 </motion.div>
