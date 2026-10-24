@@ -44,13 +44,15 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Cada página se monta dos veces (llamadas dobles a la API, saltos de layout).
 - Sesión: consulta `/users/me` cada 5 s y cierra sesión ante cualquier error de red.
 
-## Fase 6 — Contenido y coherencia ⬜
+## Fase 6 — Contenido y coherencia ✅
 - Datos de contacto contradictorios (.com vs .com.es, +34 vs +58) → una sola fuente.
 - Footer: redes, Carreras/Prensa/Blog, Privacidad/Términos/Cookies apuntan a `#`.
 - Botones falsos: campana con punto rojo fijo, buscadores, newsletter, "Mejorar a Pro", idioma.
 - Páginas "Próximamente" (Compañía, Ayuda) enlazadas desde el menú.
 - Datos engañosos: rating 5.0 y "verificado" por defecto, precio siempre en USD.
 - Textos en inglés mezclados ("Searching talents…", "Loading…", "Dark/Light").
+- Hecho: datos de contacto únicos en `frontend/src/lib/site.ts`; páginas Privacidad, Términos, Cookies, Carreras, Prensa, Blog, Ayuda y Compañía; buscador (`/buscar`); campana con notificaciones reales; newsletter; solicitud de Plan Pro; consentimiento comercial opcional (RGPD).
+- ⚠️ PENDIENTE del dueño: completar los textos marcados `[completar: …]` en Privacidad y Términos (razón social, NIF/CIF, domicilio, DPD, plazos) y revisarlos con un asesor legal.
 
 ## Fase 7 — Eventos, categorías y perfiles ⬜
 - `/eventos`: el filtro activo no se distingue; "Cartelera" queda vacía si solo hay el evento destacado.

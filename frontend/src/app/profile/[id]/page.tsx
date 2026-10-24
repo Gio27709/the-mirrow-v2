@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, notFound } from "next/navigation";
 import { api } from "@/lib/api";
+import { formatPrice } from "@/lib/format";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { BookingModal } from "@/components/profile/BookingModal";
 import { motion } from "framer-motion";
@@ -173,8 +174,8 @@ export default function ProfilePage() {
                   <div className="flex justify-between items-end mb-6">
                     <div>
                       <p className="text-[var(--text-secondary)] text-sm uppercase tracking-wider font-bold">Precio Base</p>
-                      <h4 className="text-4xl font-black text-white">
-                        ${talent.base_price}
+                      <h4 className="text-4xl font-black text-[var(--text-primary)]">
+                        {formatPrice(talent.base_price ?? 0, talent.price_currency || "EUR")}
                         <span className="text-lg text-[var(--text-muted)] font-normal">/{talent.price_unit || "Evento"}</span>
                       </h4>
                     </div>

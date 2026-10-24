@@ -177,7 +177,7 @@ export function BookingModal({
                               })
                             }
                             className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-xl py-3 pl-10 pr-4 text-[var(--text-primary)] focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
-                            placeholder="+58 ..."
+                            placeholder="+34 600 000 000"
                           />
                         </div>
                       </div>

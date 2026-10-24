@@ -15,7 +15,8 @@ import {
   Camera,
   Mail,
   AlertCircle,
-  CreditCard,
+  Crown,
+  Loader2,
   Sun,
   Monitor,
   LucideIcon,
@@ -39,7 +40,7 @@ const TABS: TabItem[] = [
   { id: "tickets", label: "Mis Entradas", icon: Ticket },
   { id: "security", label: "Seguridad", icon: Lock },
   { id: "appearance", label: "Apariencia", icon: Moon },
-  { id: "billing", label: "Facturación", icon: CreditCard },
+  { id: "billing", label: "Plan Pro", icon: Crown },
   { id: "notifications", label: "Notificaciones", icon: Bell },
 ];
 
@@ -58,8 +59,14 @@ export default function SettingsPage() {
 
   // ... (rest of component)
 
-  const [language, setLanguage] = useState("es");
   const [activeTab, setActiveTab] = useState("account");
+
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab && TABS.some((t) => t.id === tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -118,6 +125,49 @@ export default function SettingsPage() {
     } catch (error: unknown) {
       const err = error as Error;
       setErrorMsg(err.message || "Error al actualizar contraseña");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Plan Pro request (goes to the admin inbox as a lead)
+  const [proMessage, setProMessage] = useState("");
+  const [proStatus, setProStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [proError, setProError] = useState("");
+
+  const handleProRequest = async () => {
+    if (!user) return;
+    setProStatus("loading");
+    setProError("");
+    try {
+      await api.post("/leads", {
+        full_name: user.full_name || user.email,
+        email: user.email,
+        message: ["Solicitud de plan Pro", proMessage.trim()].filter(Boolean).join("\n"),
+        inquiry_type: "pro",
+        source: "web",
+      });
+      setProStatus("done");
+    } catch (error) {
+      setProStatus("error");
+      setProError(error instanceof Error ? error.message : "No se pudo enviar la solicitud");
+    }
+  };
+
+  const toggleNotifications = async () => {
+    if (!user) return;
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const token = localStorage.getItem("token");
+      await api.put(
+        "/users/me",
+        { accepts_notifications: !user.accepts_notifications },
+        token,
+      );
+      await refreshUser();
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "No se pudo guardar la preferencia");
     } finally {
       setLoading(false);
     }
@@ -359,9 +409,11 @@ export default function SettingsPage() {
                           disabled
                           className="w-full bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2.5 text-[var(--text-muted)] cursor-not-allowed opacity-70"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-500 flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Verificado
-                        </span>
+                        {user?.auth_provider === "google" && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-500 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Verificado
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-[var(--text-muted)]">
                         El correo electrónico no se puede cambiar por seguridad.
@@ -727,210 +779,114 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Language Selector (Mock for now) */}
-                  <div className="space-y-4 pt-4 border-t border-[var(--border-subtle)]">
-                    <label className="text-sm font-medium text-[var(--text-secondary)]">
-                      Idioma
-                    </label>
-                    <div className="bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)] rounded-xl divide-y divide-[var(--border-subtle)]">
-                      <button
-                        onClick={() => setLanguage("es")}
-                        className="w-full flex items-center justify-between p-4 hover:bg-[var(--bg-elevated)] transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-yellow-400/20 text-yellow-600 flex items-center justify-center text-xs font-bold">
-                            ES
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-[var(--text-primary)]">
-                              Español
-                            </p>
-                            <p className="text-xs text-[var(--text-secondary)]">
-                              Idioma actual
-                            </p>
-                          </div>
-                        </div>
-                        {language === "es" && (
-                          <Check className="w-5 h-5 text-[var(--accent-primary)]" />
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => setLanguage("en")}
-                        className="w-full flex items-center justify-between p-4 hover:bg-[var(--bg-elevated)] transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-400/20 text-blue-600 flex items-center justify-center text-xs font-bold">
-                            EN
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-[var(--text-primary)]">
-                              English (US)
-                            </p>
-                            <p className="text-xs text-[var(--text-secondary)]">
-                              English
-                            </p>
-                          </div>
-                        </div>
-                        {language === "en" && (
-                          <Check className="w-5 h-5 text-[var(--accent-primary)]" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               )}
 
               {activeTab === "billing" && (
                 <div className="space-y-8">
-                  {/* Current Plan */}
                   <div className="p-6 rounded-2xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-[var(--bg-elevated)] border border-[var(--accent-primary)]/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-10">
-                      <CreditCard className="w-32 h-32" />
+                      <Crown className="w-32 h-32" />
                     </div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
+                    <div className="relative z-10 space-y-4">
+                      <div className="flex items-center justify-between gap-4">
                         <div>
                           <h3 className="text-lg font-bold text-[var(--accent-primary)]">
                             Plan Gratuito
                           </h3>
                           <p className="text-[var(--text-secondary)]">
-                            Actualmente estás en el plan básico.
+                            Estás usando el plan básico de The Mirrow.
                           </p>
                         </div>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent-primary)] text-white">
                           ACTIVO
                         </span>
                       </div>
-                      <div className="flex gap-3">
-                        <button className="px-4 py-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-[var(--accent-primary)]/20">
-                          Mejorar a Pro
-                        </button>
-                        <button className="px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)]/80 text-[var(--text-primary)] text-sm font-medium rounded-lg transition-colors border border-[var(--border-subtle)]">
-                          Ver Planes
-                        </button>
-                      </div>
                     </div>
                   </div>
 
-                  {/* Payment Methods */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-bold text-[var(--text-primary)]">
-                        Método de Pago
-                      </h2>
-                    </div>
-
-                    <div className="p-8 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)] border-dashed flex flex-col items-center justify-center gap-3 text-center">
-                      <div className="p-3 rounded-full bg-[var(--bg-elevated)] text-[var(--text-muted)]">
-                        <CreditCard className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-[var(--text-primary)]">
-                          No tienes tarjetas guardadas
-                        </p>
-                        <p className="text-xs text-[var(--text-secondary)]">
-                          Agrega un método de pago para suscribirte.
-                        </p>
-                      </div>
-                      <button className="mt-2 text-sm text-[var(--accent-primary)] hover:underline font-medium">
-                        + Agregar Tarjeta
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Billing History (Empty State) */}
-                  <div className="space-y-4 pt-6 border-t border-[var(--border-subtle)]">
                     <h2 className="text-xl font-bold text-[var(--text-primary)]">
-                      Historial de Facturación
+                      ¿Quieres ser Pro?
                     </h2>
-                    <div className="p-8 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)] text-center text-[var(--text-secondary)]">
-                      <p>No tienes facturas disponibles.</p>
-                    </div>
+                    <p className="text-[var(--text-secondary)]">
+                      El plan Pro está pensado para artistas y organizadores que
+                      quieren más visibilidad y acompañamiento del equipo de The
+                      Mirrow. Envíanos tu solicitud y te contactaremos con las
+                      condiciones y el precio. No se realiza ningún cobro
+                      automático.
+                    </p>
+
+                    {proStatus === "done" ? (
+                      <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+                        <Check className="w-4 h-4" /> Solicitud enviada. Te escribiremos a {user?.email}.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <textarea
+                          value={proMessage}
+                          onChange={(e) => setProMessage(e.target.value)}
+                          rows={3}
+                          placeholder="Cuéntanos un poco: ¿eres artista u organizador? ¿Qué necesitas?"
+                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
+                        />
+                        {proStatus === "error" && (
+                          <p className="text-sm text-red-400">{proError}</p>
+                        )}
+                        <button
+                          onClick={handleProRequest}
+                          disabled={proStatus === "loading"}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-[var(--accent-primary)]/20"
+                        >
+                          {proStatus === "loading" ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Crown className="w-4 h-4" />
+                          )}
+                          Solicitar plan Pro
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
               {activeTab === "notifications" && (
-                <div className="space-y-8">
-                  {/* Email Notifications */}
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-bold text-[var(--text-primary)]">
-                      Preferencias de Correo
-                    </h2>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)]">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                            <Shield className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-[var(--text-primary)]">
-                              Alertas de Seguridad
-                            </p>
-                            <p className="text-xs text-[var(--text-secondary)]">
-                              Avisos de inicio de sesión y cambios de
-                              contraseña.
-                            </p>
-                          </div>
-                        </div>
-                        <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-green-500/20">
-                          <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-green-500 transition" />
-                        </div>
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold text-[var(--text-primary)]">
+                    Preferencias de Correo
+                  </h2>
+                  <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)]">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                        <Mail className="w-5 h-5" />
                       </div>
-
-                      <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)]">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
-                            <Mail className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-[var(--text-primary)]">
-                              Novedades y Ofertas
-                            </p>
-                            <p className="text-xs text-[var(--text-secondary)]">
-                              Recibe noticias sobre nuevas funciones y
-                              promociones.
-                            </p>
-                          </div>
-                        </div>
-                        {/* Mock User Preference Toggle */}
-                        <button
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.accepts_notifications ? "bg-indigo-500" : "bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"}`}
-                          disabled
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${user?.accepts_notifications ? "translate-x-6" : "translate-x-1"}`}
-                          />
-                        </button>
+                      <div>
+                        <p className="font-medium text-[var(--text-primary)]">
+                          Novedades y promociones
+                        </p>
+                        <p className="text-xs text-[var(--text-secondary)]">
+                          Eventos, artistas nuevos y ofertas de The Mirrow.
+                        </p>
                       </div>
                     </div>
+                    <button
+                      role="switch"
+                      aria-checked={!!user?.accepts_notifications}
+                      aria-label="Recibir novedades y promociones"
+                      onClick={toggleNotifications}
+                      disabled={loading}
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${user?.accepts_notifications ? "bg-indigo-500" : "bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${user?.accepts_notifications ? "translate-x-6" : "translate-x-1"}`}
+                      />
+                    </button>
                   </div>
-
-                  {/* Push Notifications (Mock) */}
-                  <div className="space-y-4 pt-6 border-t border-[var(--border-subtle)]">
-                    <h2 className="text-xl font-bold text-[var(--text-primary)]">
-                      Notificaciones Push
-                    </h2>
-                    <div className="p-4 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)] flex items-center justify-between opacity-50 cursor-not-allowed">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400">
-                          <Bell className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-[var(--text-primary)]">
-                            Notificaciones de Escritorio
-                          </p>
-                          <p className="text-xs text-[var(--text-secondary)]">
-                            Recibe alertas directamente en tu navegador.
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs font-medium text-[var(--text-muted)] bg-[var(--bg-elevated)] px-2 py-1 rounded">
-                        Próximamente
-                      </span>
-                    </div>
-                  </div>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Los avisos sobre tu cuenta y tus entradas se envían siempre,
+                    independientemente de esta preferencia.
+                  </p>
                 </div>
               )}
             </motion.div>

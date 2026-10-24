@@ -58,7 +58,7 @@ export default function AdminLayout({
   }, []);
 
   const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
+    { icon: LayoutDashboard, label: "Panel", href: "/admin" },
     { icon: Users, label: "Usuarios", href: "/admin/users" },
     { icon: Star, label: "Talentos", href: "/admin/talent" },
     { icon: ClipboardList, label: "Registros", href: "/admin/leads" },

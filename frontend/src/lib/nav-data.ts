@@ -9,7 +9,6 @@ import {
   Music,
   Disc3,
   Mic2,
-  Target,
   Layers,
   Activity,
   CalendarDays,
@@ -24,7 +23,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   {
-    title: "Dashboard",
+    title: "Panel",
     href: "/",
     icon: LayoutDashboard,
   },

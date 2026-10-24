@@ -12,9 +12,9 @@ interface ThemeOption {
 }
 
 const themes: ThemeOption[] = [
-    { id: "dark", label: "Dark", icon: Moon },
-    { id: "light", label: "Light", icon: Sun },
-    { id: "grey", label: "Grey", icon: Monitor },
+    { id: "dark", label: "Oscuro", icon: Moon },
+    { id: "light", label: "Claro", icon: Sun },
+    { id: "grey", label: "Gris", icon: Monitor },
 ];
 
 /**
@@ -47,7 +47,7 @@ export function ThemeSwitcher() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-3 py-2 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-metallic)] transition-all"
-                title="Change theme"
+                title="Cambiar tema"
             >
                 <CurrentIcon className="w-4 h-4" />
                 <span className="text-xs font-medium hidden sm:block">{currentTheme.label}</span>

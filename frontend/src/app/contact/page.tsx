@@ -14,12 +14,13 @@ import {
   Sparkles,
   Instagram,
 } from "lucide-react";
+import { SITE } from "@/lib/site";
 import { api } from "@/lib/api";
 import Link from "next/link";
 
-const WHATSAPP_NUMBER = "34677267104";
-const EMAIL = "info@themirrow.com";
-const INSTAGRAM = "@themirrow";
+const WHATSAPP_NUMBER = SITE.phoneDigits;
+const EMAIL = SITE.email;
+const INSTAGRAM = SITE.instagram.handle;
 
 const inquiryTypes = [
   { value: "evento", label: "🎪 Organizar un Evento" },
@@ -362,7 +363,7 @@ export default function ContactPage() {
                 WhatsApp y te atenderemos al momento.
               </p>
               <div className="flex items-center gap-2 text-emerald-400 font-medium text-sm group-hover:gap-3 transition-all">
-                +34 677 26 71 04
+                {SITE.phone}
                 <ArrowRight className="w-4 h-4" />
               </div>
             </a>
@@ -394,9 +395,12 @@ export default function ContactPage() {
                 <Phone className="w-5 h-5 text-[var(--text-muted)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium">Teléfono</p>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    +34 677 26 71 04
-                  </p>
+                  <a
+                    href={`tel:+${SITE.phoneDigits}`}
+                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    {SITE.phone}
+                  </a>
                 </div>
               </div>
 
@@ -404,9 +408,14 @@ export default function ContactPage() {
                 <Instagram className="w-5 h-5 text-[var(--text-muted)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium">Instagram</p>
-                  <p className="text-sm text-[var(--text-secondary)]">
+                  <a
+                    href={SITE.instagram.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                  >
                     {INSTAGRAM}
-                  </p>
+                  </a>
                 </div>
               </div>
 

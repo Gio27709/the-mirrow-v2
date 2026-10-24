@@ -12,7 +12,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { NavItem } from "@/lib/nav-data";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCategories } from "@/context/CategoryContext";
 import { Logo } from "@/components/ui/Logo";
 
@@ -42,6 +42,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileDrawer = false, o
   const { user } = useAuth();
   const { mergedNavItems } = useCategories();
   const pathname = usePathname();
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
@@ -183,16 +184,27 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileDrawer = false, o
         {/* Search Bar */}
         {!isActuallyCollapsed && (
           <div className="px-5 py-4 shrink-0">
-            <div className="relative group">
+            <form
+              role="search"
+              className="relative group"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchQuery.trim();
+                if (!q) return;
+                onMobileClose?.();
+                router.push(`/buscar?q=${encodeURIComponent(q)}`);
+              }}
+            >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--text-primary)] transition-colors" />
               <input
-                type="text"
+                type="search"
+                aria-label="Buscar artistas, eventos o categorías"
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-medium)] focus:ring-1 focus:ring-[var(--border-medium)] transition-all"
               />
-            </div>
+            </form>
           </div>
         )}
 

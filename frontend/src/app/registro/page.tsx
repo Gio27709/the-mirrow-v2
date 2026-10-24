@@ -159,7 +159,7 @@ export default function RegisterLanding() {
                         setFormData({ ...formData, phone: e.target.value })
                       }
                       className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500 transition-colors"
-                      placeholder="+1 234 567 890"
+                      placeholder="+34 600 000 000"
                     />
                   </div>
                 </div>

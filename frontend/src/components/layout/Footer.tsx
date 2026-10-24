@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useCategories } from "@/context/CategoryContext";
@@ -7,17 +8,91 @@ import * as Icons from "lucide-react";
 import {
     Mail,
     Instagram,
-    Twitter,
-    Youtube,
-    Sparkles,
-    Layers
+    MessageCircle,
+    Layers,
+    Loader2,
+    Check,
 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
+import { api } from "@/lib/api";
+import { SITE, whatsappUrl, mailtoUrl } from "@/lib/site";
 
 const socialLinks = [
-    { label: "Instagram", href: "#", icon: Instagram },
-    { label: "Twitter", href: "#", icon: Twitter },
-    { label: "YouTube", href: "#", icon: Youtube },
+    { label: `Instagram ${SITE.instagram.handle}`, href: SITE.instagram.url, icon: Instagram },
+    { label: "WhatsApp", href: whatsappUrl(), icon: MessageCircle },
 ];
+
+const companyLinks = [
+    { label: "Sobre nosotros", href: "/about" },
+    { label: "La compañía", href: "/company" },
+    { label: "Carreras", href: "/carreras" },
+    { label: "Prensa", href: "/prensa" },
+    { label: "Blog", href: "/blog" },
+    { label: "Ayuda", href: "/help" },
+];
+
+const legalLinks = [
+    { label: "Privacidad", href: "/privacidad" },
+    { label: "Términos", href: "/terminos" },
+    { label: "Cookies", href: "/cookies" },
+];
+
+function NewsletterForm() {
+    const [email, setEmail] = useState("");
+    const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+    const [error, setError] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus("loading");
+        setError("");
+        try {
+            await api.post("/leads", {
+                full_name: "Suscriptor newsletter",
+                email,
+                inquiry_type: "newsletter",
+                source: "footer",
+            });
+            setStatus("done");
+            setEmail("");
+        } catch (err) {
+            setStatus("error");
+            setError(err instanceof Error ? err.message : "No se pudo completar la suscripción");
+        }
+    };
+
+    if (status === "done") {
+        return (
+            <p className="flex items-center gap-2 text-sm text-emerald-400">
+                <Check className="w-4 h-4" /> ¡Listo! Te avisaremos de las novedades.
+            </p>
+        );
+    }
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <div className="flex gap-2">
+                <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    aria-label="Tu correo electrónico"
+                    className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-metallic)] transition-colors"
+                />
+                <button
+                    type="submit"
+                    disabled={status === "loading"}
+                    className="px-4 py-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Suscribirme"}
+                </button>
+            </div>
+            {status === "error" && <p className="mt-2 text-xs text-red-400">{error}</p>}
+        </form>
+    );
+}
 
 /**
  * Footer Component
@@ -38,13 +113,8 @@ export function Footer() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {/* Brand Column */}
                         <div className="lg:col-span-1">
-                            <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-metallic)] to-[var(--accent-metallic-dim)] flex items-center justify-center">
-                                    <Sparkles className="w-5 h-5 text-[var(--bg-primary)]" />
-                                </div>
-                                <span className="text-xl font-bold text-[var(--text-primary)] group-hover:text-gradient-metallic transition-all">
-                                    The Mirrow
-                                </span>
+                            <Link href="/" className="inline-flex mb-4" aria-label="The Mirrow - Inicio">
+                                <Logo className="w-[140px]! h-[48px]!" />
                             </Link>
                             <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
                                 Tu plataforma de entretenimiento profesional.
@@ -58,6 +128,9 @@ export function Footer() {
                                         <motion.a
                                             key={social.label}
                                             href={social.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={social.label}
                                             whileHover={{ scale: 1.1, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
                                             className="w-9 h-9 rounded-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent-metallic)] hover:border-[var(--accent-metallic)] transition-colors"
@@ -100,13 +173,13 @@ export function Footer() {
                                 Compañía
                             </h4>
                             <ul className="space-y-2">
-                                {["Sobre nosotros", "Carreras", "Prensa", "Blog"].map((item) => (
-                                    <li key={item}>
+                                {companyLinks.map((item) => (
+                                    <li key={item.href}>
                                         <Link
-                                            href="#"
+                                            href={item.href}
                                             className="text-[var(--text-secondary)] hover:text-[var(--accent-metallic)] transition-colors text-sm"
                                         >
-                                            {item}
+                                            {item.label}
                                         </Link>
                                     </li>
                                 ))}
@@ -120,23 +193,23 @@ export function Footer() {
                             </h4>
                             <div className="space-y-3">
                                 <a
-                                    href="mailto:info@themirrow.com"
-                                    className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--accent-metallic)] transition-colors text-sm"
+                                    href={mailtoUrl()}
+                                    className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--accent-metallic)] transition-colors text-sm"
                                 >
                                     <Mail className="w-4 h-4" />
-                                    info@themirrow.com
+                                    {SITE.email}
                                 </a>
                                 <a
-                                    href="https://wa.me/34677267104"
+                                    href={whatsappUrl()}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-emerald-400 transition-colors text-sm"
+                                    className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-emerald-400 transition-colors text-sm"
                                 >
-                                    <span className="text-lg">💬</span>
-                                    +34 677 26 71 04
+                                    <MessageCircle className="w-4 h-4" />
+                                    {SITE.phone}
                                 </a>
                                 <p className="text-[var(--text-muted)] text-xs">
-                                    Lunes a Viernes: 9:00 - 18:00
+                                    {SITE.hours}
                                 </p>
                             </div>
 
@@ -145,16 +218,7 @@ export function Footer() {
                                 <p className="text-xs text-[var(--text-secondary)] mb-2">
                                     Suscríbete a nuestras novedades
                                 </p>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="email"
-                                        placeholder="tu@email.com"
-                                        className="flex-1 px-3 py-2 text-sm rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-metallic)] transition-colors"
-                                    />
-                                    <button className="px-4 py-2 bg-[var(--accent-metallic)] hover:bg-[var(--accent-metallic-hover)] text-[var(--bg-primary)] text-sm font-medium rounded-lg transition-colors">
-                                        OK
-                                    </button>
-                                </div>
+                                <NewsletterForm />
                             </div>
                         </div>
                     </div>
@@ -168,13 +232,13 @@ export function Footer() {
                                 © {currentYear} The Mirrow. Todos los derechos reservados.
                             </p>
                             <div className="flex items-center gap-4">
-                                {["Privacidad", "Términos", "Cookies"].map((item) => (
+                                {legalLinks.map((item) => (
                                     <Link
-                                        key={item}
-                                        href="#"
+                                        key={item.href}
+                                        href={item.href}
                                         className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors text-xs"
                                     >
-                                        {item}
+                                        {item.label}
                                     </Link>
                                 ))}
                             </div>

@@ -7,8 +7,9 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    accepts_notifications: bool
-    
+    # Marketing consent must be optional (RGPD): it can't be a condition to register
+    accepts_notifications: bool = False
+
     @field_validator('password')
     @classmethod
     def validate_password(cls, v: str) -> str:
@@ -19,13 +20,7 @@ class UserCreate(UserBase):
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
         return v
-        
-    @field_validator('accepts_notifications')
-    @classmethod
-    def validate_notifications(cls, v: bool) -> bool:
-        if v is False:
-            raise ValueError('You must accept notifications to register')
-        return v
+
 
 class UserLogin(UserBase):
     password: str
@@ -33,6 +28,7 @@ class UserLogin(UserBase):
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     username: Optional[str] = None
+    accepts_notifications: Optional[bool] = None
 
 class UserPasswordUpdate(BaseModel):
     old_password: str
@@ -56,6 +52,7 @@ class UserResponse(UserBase):
     full_name: Optional[str] = None
     profile_image_url: Optional[str] = None
     auth_provider: Optional[str] = None
+    accepts_notifications: bool = False
     role: str
 
     @field_validator('role', mode='before')

@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Search, Bell, X, User, LogOut, ChevronDown } from "lucide-react";
+import { Search, X, User, LogOut, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { NotificationBell } from "./NotificationBell";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { Logo } from "@/components/ui/Logo";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +23,13 @@ export function FloatingNavbar() {
   const [imageError, setImageError] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) router.push(`/buscar?q=${encodeURIComponent(q)}`);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -74,7 +83,9 @@ export function FloatingNavbar() {
 
         {/* Center Section: Search Bar */}
         <div className="flex-1 max-w-md hidden lg:block">
-          <motion.div
+          <motion.form
+            onSubmit={submitSearch}
+            role="search"
             animate={{
               scale: isSearchFocused ? 1.02 : 1,
               boxShadow: isSearchFocused
@@ -86,7 +97,8 @@ export function FloatingNavbar() {
           >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             <input
-              type="text"
+              type="search"
+              aria-label="Buscar artistas, eventos o categorías"
               placeholder="Buscar artistas, eventos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -96,13 +108,15 @@ export function FloatingNavbar() {
             />
             {searchQuery && (
               <button
+                type="button"
+                aria-label="Borrar búsqueda"
                 onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center hover:bg-[var(--accent-metallic)]/20 transition-colors"
               >
                 <X className="w-3 h-3 text-[var(--text-secondary)]" />
               </button>
             )}
-          </motion.div>
+          </motion.form>
         </div>
 
         {/* Right Section: Actions */}
@@ -110,16 +124,8 @@ export function FloatingNavbar() {
           {/* Theme Switcher */}
           <ThemeSwitcher />
 
-          {/* Notifications (Keep for existing functionality) */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative w-10 h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] hover:border-[var(--accent-metallic)]/30 transition-all"
-            title="Notificaciones"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-[var(--bg-elevated)]" />
-          </motion.button>
+          {/* Notifications */}
+          <NotificationBell />
 
           {/* Divider */}
           <div className="w-px h-6 bg-[var(--border-subtle)] mx-1 hidden md:block" />

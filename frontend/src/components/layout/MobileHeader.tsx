@@ -8,6 +8,7 @@ import { Menu, X, User, LogOut, Search } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { Logo } from "@/components/ui/Logo";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 /**
  * Mobile Header Component
@@ -20,6 +21,7 @@ interface MobileHeaderProps {
 export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -149,7 +151,7 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
                             className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] flex items-center gap-2 transition-colors"
                           >
                             <Menu size={16} />
-                            Admin Panel
+                            Panel de administración
                           </button>
                         </Link>
                       )}
@@ -192,11 +194,23 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
               className="overflow-hidden"
             >
               <div className="pt-3 pb-1">
-                <div className="relative">
+                <form
+                  role="search"
+                  className="relative"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const q = searchQuery.trim();
+                    if (!q) return;
+                    setIsSearchOpen(false);
+                    router.push(`/buscar?q=${encodeURIComponent(q)}`);
+                  }}
+                >
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                   <input
-                    type="text"
-                    placeholder="Buscar..."
+                    type="search"
+                    enterKeyHint="search"
+                    aria-label="Buscar artistas, eventos o categorías"
+                    placeholder="Buscar artistas, eventos..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -204,13 +218,15 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
                   />
                   {searchQuery && (
                     <button
+                      type="button"
+                      aria-label="Borrar búsqueda"
                       onClick={() => setSearchQuery("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center hover:bg-[var(--accent-metallic)]/20 transition-colors"
                     >
                       <X className="w-3 h-3 text-[var(--text-secondary)]" />
                     </button>
                   )}
-                </div>
+                </form>
               </div>
             </motion.div>
           )}

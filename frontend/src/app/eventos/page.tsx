@@ -17,6 +17,7 @@ import {
   Filter,
   Loader2,
 } from "lucide-react";
+import { SITE } from "@/lib/site";
 import Link from "next/link";
 import Image from "next/image";
 import { api } from "@/lib/api";
@@ -65,7 +66,7 @@ interface Event {
   lineup: EventLineupItem[];
 }
 
-const WHATSAPP_NUMBER = "34677267104";
+const WHATSAPP_NUMBER = SITE.phoneDigits;
 
 export default function EventosPage() {
   const [events, setEvents] = useState<Event[]>([]);

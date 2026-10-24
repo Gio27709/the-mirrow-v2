@@ -23,6 +23,7 @@ import {
   Loader2,
   Share2,
 } from "lucide-react";
+import { SITE } from "@/lib/site";
 import Link from "next/link";
 import Image from "next/image";
 interface EventZone {
@@ -78,7 +79,7 @@ interface EventDetail {
   lineup: EventLineupItem[];
 }
 
-const WHATSAPP_FALLBACK = "34677267104";
+const WHATSAPP_FALLBACK = SITE.phoneDigits;
 
 export default function EventDetailPage({
   params,
@@ -174,7 +175,7 @@ export default function EventDetailPage({
     try {
       await api.post(`/tickets/reserve/${event.id}`, {}, token!);
       alert("¡Lugar reservado! Tu entrada digital está en tu perfil.");
-      router.push("/profile");
+      router.push("/settings?tab=tickets");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Error al reservar. Puede que ya tengas una entrada.";
       alert(errorMessage);

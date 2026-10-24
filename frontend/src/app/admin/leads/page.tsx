@@ -21,6 +21,10 @@ const typeLabels: Record<string, string> = {
   cotizacion: "💰 Cotización",
   talento: "🎤 Talento",
   general: "💬 General",
+  newsletter: "📰 Newsletter",
+  pro: "👑 Plan Pro",
+  empleo: "💼 Empleo",
+  prensa: "🗞️ Prensa",
 };
 
 const sourceLabels: Record<string, string> = {

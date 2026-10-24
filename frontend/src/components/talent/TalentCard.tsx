@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Star, Music, MapPin } from "lucide-react";
+import { Music, MapPin } from "lucide-react";
 
 export interface TalentProfile {
   id: number;
@@ -43,13 +43,6 @@ export function TalentCard({ talent, index }: TalentCardProps) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
-        {/* Badges/Tags could go here */}
-        <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 border border-white/10">
-          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-          <span className="text-xs font-medium text-white">
-            {talent.rating || "5.0"}
-          </span>
-        </div>
       </div>
 
       <div className="absolute bottom-0 w-full p-6 space-y-2">

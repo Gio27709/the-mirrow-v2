@@ -132,7 +132,7 @@ export default function DynamicCategoryPage() {
       {/* Talents Grid */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 -mt-10 md:-mt-20 relative z-20">
         {isLoadingTalents ? (
-          <div className="text-center py-20">Searching talents...</div>
+          <div className="text-center py-20">Buscando artistas...</div>
         ) : talents.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {talents.map((talent, index) => (

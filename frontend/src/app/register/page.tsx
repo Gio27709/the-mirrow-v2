@@ -17,6 +17,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     accepts_notifications: false,
+    accepts_terms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -44,8 +45,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!formData.accepts_notifications) {
-      setError("Debes aceptar recibir notificaciones para registrarte.");
+    if (!formData.accepts_terms) {
+      setError("Debes aceptar los Términos y la Política de Privacidad.");
       return;
     }
 
@@ -241,34 +242,52 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Mandatory Notifications Checkbox */}
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)]">
-            <div className="relative flex items-center mt-1">
-              <input
-                type="checkbox"
-                required
-                id="notifications"
-                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[var(--border-subtle)] checked:border-[var(--accent-metallic)] checked:bg-[var(--accent-metallic)] transition-all"
-                checked={formData.accepts_notifications}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    accepts_notifications: e.target.checked,
-                  })
-                }
-              />
-              <Check className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+          {/* Consents: terms are required, marketing is optional (RGPD) */}
+          <div className="space-y-3 p-4 rounded-xl bg-[var(--bg-tertiary)]/30 border border-[var(--border-subtle)]">
+            <div className="flex items-start gap-3">
+              <div className="relative flex items-center mt-0.5">
+                <input
+                  type="checkbox"
+                  required
+                  id="terms"
+                  className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[var(--border-subtle)] checked:border-[var(--accent-primary)] checked:bg-[var(--accent-primary)] transition-all"
+                  checked={formData.accepts_terms}
+                  onChange={(e) =>
+                    setFormData({ ...formData, accepts_terms: e.target.checked })
+                  }
+                />
+                <Check className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+              </div>
+              <label htmlFor="terms" className="text-sm text-[var(--text-secondary)] cursor-pointer select-none">
+                He leído y acepto los{" "}
+                <Link href="/terminos" target="_blank" className="text-[var(--text-primary)] underline">
+                  Términos y Condiciones
+                </Link>{" "}
+                y la{" "}
+                <Link href="/privacidad" target="_blank" className="text-[var(--text-primary)] underline">
+                  Política de Privacidad
+                </Link>
+                . <span className="text-red-400">*</span>
+              </label>
             </div>
-            <label
-              htmlFor="notifications"
-              className="text-sm text-[var(--text-secondary)] cursor-pointer select-none"
-            >
-              Deseo recibir notificaciones sobre eventos exclusivos, promociones
-              y novedades de The Mirrow.{" "}
-              <span className="text-[var(--accent-metallic)]">
-                * (Obligatorio)
-              </span>
-            </label>
+
+            <div className="flex items-start gap-3">
+              <div className="relative flex items-center mt-0.5">
+                <input
+                  type="checkbox"
+                  id="notifications"
+                  className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[var(--border-subtle)] checked:border-[var(--accent-primary)] checked:bg-[var(--accent-primary)] transition-all"
+                  checked={formData.accepts_notifications}
+                  onChange={(e) =>
+                    setFormData({ ...formData, accepts_notifications: e.target.checked })
+                  }
+                />
+                <Check className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+              </div>
+              <label htmlFor="notifications" className="text-sm text-[var(--text-secondary)] cursor-pointer select-none">
+                Quiero recibir novedades sobre eventos, artistas y promociones de The Mirrow (opcional).
+              </label>
+            </div>
           </div>
 
           <button

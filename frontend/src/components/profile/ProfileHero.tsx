@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { BadgeCheck, Star, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
+import { formatPrice } from "@/lib/format";
 
 interface ProfileHeroProps {
   talent: {
@@ -53,18 +54,11 @@ export function ProfileHero({ talent }: ProfileHeroProps) {
               <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs font-bold uppercase tracking-widest text-white">
                 {talent.category}
               </span>
-              <div className="flex items-center gap-1 text-yellow-400">
-                <Star className="w-4 h-4 fill-yellow-400" />
-                <span className="text-sm font-bold">
-                  {talent.rating || "5.0"}
-                </span>
-              </div>
             </div>
 
             {/* Name */}
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tight uppercase drop-shadow-2xl">
               {talent.stage_name}
-              <BadgeCheck className="inline-block w-8 h-8 md:w-12 md:h-12 text-blue-400 ml-4 align-top" />
             </h1>
 
             {/* Location & Price Hint */}
@@ -77,7 +71,7 @@ export function ProfileHero({ talent }: ProfileHeroProps) {
                 <>
                   <div className="w-1 h-1 bg-white/50 rounded-full" />
                   <span className="font-light">
-                    Desde <strong className="text-white">${talent.base_price} {talent.price_currency || "USD"}</strong> / {talent.price_unit || "Evento"}
+                    Desde <strong className="text-white">{formatPrice(talent.base_price, talent.price_currency || "EUR")}</strong> / {talent.price_unit || "Evento"}
                   </span>
                 </>
               )}

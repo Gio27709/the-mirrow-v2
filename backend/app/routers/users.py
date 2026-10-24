@@ -48,7 +48,9 @@ def update_user_me(
         if existing and existing.id != user.id:
             raise HTTPException(status_code=400, detail="Username already taken")
         user.username = user_update.username
-        
+    if user_update.accepts_notifications is not None:
+        user.accepts_notifications = user_update.accepts_notifications
+
     db.commit()
     db.refresh(user)
     return user
