@@ -26,28 +26,50 @@ export function BookingModal({
 }: BookingModalProps) {
   const [step, setStep] = useState<"form" | "success">("form");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     phone: "",
-    date: "", // Not saved to DB yet, but good for UX
-    details: "", // Not saved to DB yet
+    date: "",
+    details: "",
   });
+
+  const handleClose = () => {
+    onClose();
+    // Reset after the exit animation so reopening shows a fresh form
+    setTimeout(() => {
+      setStep("form");
+      setError("");
+    }, 300);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     try {
-      // We only send supported fields to backend
+      // Leads have no dedicated date/details columns: send them in the message
+      const message = [
+        `Cotización para: ${talentName}`,
+        formData.date && `Fecha del evento: ${formData.date}`,
+        formData.details && `Detalles: ${formData.details}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
       await api.post("/leads", {
-        full_name: formData.full_name, // In future we could append details here
+        full_name: formData.full_name,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone || null,
+        message,
+        inquiry_type: "talento",
+        source: "web",
       });
       setStep("success");
-    } catch (error) {
-      console.error("Booking error:", error);
-      // Handle error (toast or alert)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo enviar la solicitud",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +84,8 @@ export function BookingModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+            onClick={handleClose}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70]"
           />
 
           {/* Modal */}
@@ -71,11 +93,11 @@ export function BookingModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 m-auto z-50 w-full max-w-lg h-fit bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-3xl overflow-hidden shadow-2xl p-0"
+            className="fixed inset-x-4 inset-y-0 sm:inset-x-0 m-auto z-[70] sm:w-full max-w-lg h-fit max-h-[90vh] overflow-y-auto bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-3xl overflow-hidden shadow-2xl p-0"
           >
             <div className="relative p-6 md:p-8">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="absolute top-4 right-4 p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors text-[var(--text-secondary)]"
               >
                 <X className="w-5 h-5" />
@@ -116,7 +138,7 @@ export function BookingModal({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                           Email
@@ -179,6 +201,12 @@ export function BookingModal({
                     </div>
                   </div>
 
+                  {error && (
+                    <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                      {error}
+                    </p>
+                  )}
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -216,7 +244,7 @@ export function BookingModal({
                     </p>
                   </div>
                   <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] text-white px-6 py-2 rounded-lg font-medium transition-colors"
                   >
                     Cerrar

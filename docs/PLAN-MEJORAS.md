@@ -29,7 +29,7 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Sección vacía si fallan categorías; espaciador de pruebas; peticiones duplicadas a `/hero-content`.
 - ⬜ (movido a pendientes menores) Carrusel de categorías: sin flechas en escritorio y ancho no recalculado.
 
-## Fase 4 — Formularios que no funcionan en producción ⬜
+## Fase 4 — Formularios que no funcionan en producción ✅
 - `/registro` y la subida de imágenes del admin (Portada) apuntan a `localhost:8000`.
 - Ajustes: "Guardar" no guarda (envía datos en la URL) y además vacía los campos.
 - Login ignora `?redirect=`; enlace `/forgot-password` roto.

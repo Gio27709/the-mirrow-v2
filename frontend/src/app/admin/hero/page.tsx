@@ -112,16 +112,7 @@ export default function AdminHeroPage() {
     setUploading(true);
     try {
       const token = localStorage.getItem("token");
-      // Direct fetch as api wrapper might need update for generic upload
-      const res = await fetch("http://localhost:8000/admin/upload-image", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail);
+      const data = await api.upload("/admin/upload-image", formData, token);
 
       setCurrentItem({ ...currentItem, image_url: data.url });
     } catch (error) {

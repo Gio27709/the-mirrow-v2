@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Check, Send, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function RegisterLanding() {
   const router = useRouter();
@@ -22,18 +23,9 @@ export default function RegisterLanding() {
     setStatus("loading");
 
     try {
-      const res = await fetch("http://localhost:8000/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        setStatus("success");
-        setTimeout(() => router.push("/"), 3000); // Redirect after success
-      } else {
-        setStatus("error");
-      }
+      await api.post("/leads", { ...formData, source: "landing" });
+      setStatus("success");
+      setTimeout(() => router.push("/"), 3000); // Redirect after success
     } catch {
       setStatus("error");
     }

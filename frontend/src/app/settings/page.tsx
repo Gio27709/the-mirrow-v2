@@ -70,6 +70,16 @@ export default function SettingsPage() {
     username: user?.username || "",
   });
 
+  // `user` is usually still null on first render: fill the form once it arrives
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        full_name: user.full_name || "",
+        username: user.username || "",
+      });
+    }
+  }, [user]);
+
   // Password Form State
   const [passwordData, setPasswordData] = useState({
     old_password: "",
@@ -127,8 +137,12 @@ export default function SettingsPage() {
     try {
       const token = localStorage.getItem("token");
       await api.put(
-        `/users/me?full_name=${encodeURIComponent(formData.full_name)}&username=${encodeURIComponent(formData.username)}`,
-        {},
+        "/users/me",
+        {
+          full_name: formData.full_name.trim(),
+          // An empty username would collide with other empty ones; leave it unchanged
+          username: formData.username.trim() || undefined,
+        },
         token,
       );
       await refreshUser(); // Update global state

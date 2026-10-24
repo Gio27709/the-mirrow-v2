@@ -51,12 +51,11 @@ export default function LeadsPage() {
   const toggleRead = async (id: number) => {
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/admin/leads/${id}/read`, {
-        method: "PATCH",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      });
+      await api.patch(`/admin/leads/${id}/read`, undefined, token);
       fetchLeads();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "No se pudo actualizar el mensaje");
+    }
   };
 
   const unreadCount = leads.filter(l => !l.is_read).length;

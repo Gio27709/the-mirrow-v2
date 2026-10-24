@@ -13,6 +13,12 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
+  // Only allow internal paths to avoid open redirects
+  const redirectParam = searchParams.get("redirect");
+  const redirectTo =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/";
 
   const [formData, setFormData] = useState({
     email: "",
@@ -39,7 +45,7 @@ function LoginContent() {
         password: formData.password,
       });
       login(response.access_token);
-      router.push("/"); // Redirect to home page as requested
+      router.push(redirectTo);
     } catch (err: unknown) {
       setError(
         (err as Error).message || "Credenciales inválidas. Inténtalo de nuevo.",
@@ -64,7 +70,7 @@ function LoginContent() {
 
       if (response.access_token) {
         login(response.access_token);
-        router.push("/");
+        router.push(redirectTo);
       } else {
         throw new Error("Invalid response from server");
       }
@@ -162,7 +168,7 @@ function LoginContent() {
                 Contraseña
               </label>
               <Link
-                href="/forgot-password"
+                href="/contact"
                 className="text-xs text-[var(--accent-metallic)] hover:underline"
               >
                 ¿Olvidaste tu contraseña?
@@ -218,7 +224,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          Loading...
+          Cargando...
         </div>
       }
     >
