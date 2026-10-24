@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MOBILE_BREAKPOINT } from "@/lib/navigation";
 import { FloatingNavbar } from "./FloatingNavbar";
 import { Sidebar } from "./Sidebar";
@@ -74,10 +74,12 @@ export function MainLayout({ children }: MainLayoutProps) {
             )}
 
             {/* Mobile: Sidebar Drawer Overlay */}
+            <AnimatePresence>
             {isMobile && isMobileSidebarOpen && (
                 <>
                     {/* Backdrop */}
                     <motion.div
+                        key="mobile-backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -86,6 +88,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     />
                     {/* Sidebar as drawer */}
                     <motion.div
+                        key="mobile-drawer"
                         initial={{ x: -300 }}
                         animate={{ x: 0 }}
                         exit={{ x: -300 }}
@@ -101,6 +104,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     </motion.div>
                 </>
             )}
+            </AnimatePresence>
 
             {/* Main Content Area (Wraps TopBar, Navbar, and Page Content) */}
             <motion.div
