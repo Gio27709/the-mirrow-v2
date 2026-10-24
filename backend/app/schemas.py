@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -296,7 +296,7 @@ class EventLineupResponse(EventLineupBase):
 # ============================================
 
 class EventBase(BaseModel):
-    title: str
+    title: str = Field(min_length=1)
     type: Optional[str] = None
     description: Optional[str] = None
     date: Optional[str] = None
@@ -402,3 +402,55 @@ class EventTicketResponse(EventTicketBase):
     
     class Config:
         from_attributes = True
+
+
+# ============================================
+# ADMIN PANEL (request bodies / responses)
+# ============================================
+
+class AdminUserUpdate(BaseModel):
+    """Body for PUT /admin/users/{id} (kept out of the query string so PII isn't logged)."""
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None  # "user" | "admin" ("owner" is always rejected)
+
+
+class SignedUploadRequest(BaseModel):
+    folder: str
+    filename: str
+    content_type: str
+    size: int = Field(gt=0)
+
+
+class SignedUploadResponse(BaseModel):
+    signed_url: str
+    token: str
+    path: str
+    public_url: str
+
+
+class AdminTicketIssue(BaseModel):
+    event_id: int
+    user_email: EmailStr
+    price_paid: Optional[str] = None
+    zone_id: Optional[int] = None
+
+
+class TicketStatusUpdate(BaseModel):
+    status: str  # "valido" | "usado" | "cancelado"
+
+
+class AdminTicketResponse(BaseModel):
+    id: int
+    status: str
+    qr_code: str
+    price_paid: Optional[str] = None
+    created_at: Optional[datetime] = None
+    event_id: int
+    event_title: Optional[str] = None
+    event_date: Optional[str] = None
+    zone_id: Optional[int] = None
+    zone_name: Optional[str] = None
+    user_id: int
+    user_email: Optional[str] = None
+    user_full_name: Optional[str] = None

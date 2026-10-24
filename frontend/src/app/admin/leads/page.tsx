@@ -68,7 +68,7 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">Mensajes y Contactos</h1>
           <p className="text-[var(--text-secondary)]">Consultas recibidas desde la página de contacto y landing.</p>
@@ -95,7 +95,7 @@ export default function LeadsPage() {
                   <span className={`font-medium truncate ${lead.is_read ? "text-[var(--text-secondary)]" : "text-[var(--text-primary)]"}`}>{lead.full_name}</span>
                   {!lead.is_read && <Circle className="w-2 h-2 fill-purple-400 text-purple-400 shrink-0" />}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--text-muted)]">
                   <span>{lead.email}</span>
                   {lead.inquiry_type && <span className="px-1.5 py-0.5 bg-[var(--bg-secondary)] rounded text-[var(--text-secondary)]">{typeLabels[lead.inquiry_type] || lead.inquiry_type}</span>}
                   {lead.source && <span>{sourceLabels[lead.source] || lead.source}</span>}

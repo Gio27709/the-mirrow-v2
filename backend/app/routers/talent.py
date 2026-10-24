@@ -9,24 +9,24 @@ import json
 import uuid
 import logging
 import traceback
-from ..supabase_client import upload_image, upload_video
+from ..supabase_client import upload_image, upload_video, delete_replaced_files
+from .admin import get_current_admin
 
 logger = logging.getLogger("talent_router")
 
 router = APIRouter(tags=["Talent"])
 
-def get_current_admin(token: str = Depends(auth.oauth2_scheme), db: Session = Depends(database.get_db)):
-    try:
-        payload = auth.jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
-        email: str = payload.get("sub")
-    except auth.JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user or not user.role or user.role.name not in ["admin", "owner"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    
-    return user
+def _media_urls(profile: models.TalentProfile) -> list:
+    """Every hosted file referenced by a talent profile (photo, gallery, video)."""
+    urls = [profile.image_url, profile.video_url]
+    if profile.gallery_urls:
+        try:
+            gallery = json.loads(profile.gallery_urls)
+            if isinstance(gallery, list):
+                urls.extend(u for u in gallery if isinstance(u, str))
+        except (ValueError, TypeError):
+            pass
+    return [u for u in urls if u]
 
 @router.post("/admin/talent", response_model=schemas.TalentProfileResponse)
 def create_talent_profile(
@@ -34,7 +34,9 @@ def create_talent_profile(
     admin: models.User = Depends(get_current_admin),
     db: Session = Depends(database.get_db)
 ):
-    logger.warning(f"[TALENT CREATE] Received payload: user_id={profile.user_id}, stage_name='{profile.stage_name}', category='{profile.category}', bio='{profile.bio}', image_url='{profile.image_url}'")
+    logger.warning(f"[TALENT CREATE] Received payload: user_id={profile.user_id}, category='{profile.category}'")
+    if not profile.stage_name.strip() or not profile.category.strip():
+        raise HTTPException(status_code=422, detail="El nombre artístico y la categoría son obligatorios")
     
     # Check if exists in the same category
     existing = db.query(models.TalentProfile).filter(
@@ -93,6 +95,10 @@ def update_talent_profile(
         raise HTTPException(status_code=404, detail="Profile not found")
 
     update_data = profile_update.dict(exclude_unset=True)
+    for field in ("stage_name", "category"):
+        if field in update_data and not (update_data[field] or "").strip():
+            raise HTTPException(status_code=422, detail="El nombre artístico y la categoría son obligatorios")
+    old_media = _media_urls(db_profile)
     # Serialize list fields to JSON strings for storage
     if "gallery_urls" in update_data and update_data["gallery_urls"] is not None:
         update_data["gallery_urls"] = json.dumps(update_data["gallery_urls"])
@@ -104,6 +110,8 @@ def update_talent_profile(
 
     db.commit()
     db.refresh(db_profile)
+    # Drop files that are no longer referenced (replaced photo/video, removed gallery images)
+    delete_replaced_files(old_media, _media_urls(db_profile))
     return db_profile
 
 @router.get("/talent", response_model=list[schemas.TalentProfileResponse])
@@ -138,8 +146,10 @@ def delete_talent_profile(
     if not db_profile:
         raise HTTPException(status_code=404, detail="Profile not found")
 
+    old_media = _media_urls(db_profile)
     db.delete(db_profile)
     db.commit()
+    delete_replaced_files(old_media, [])
     return None
 
 @router.post("/admin/talent/upload-image")

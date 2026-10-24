@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import {
   Loader2,
   Plus,
@@ -13,46 +14,113 @@ import {
   Layout,
 } from "lucide-react";
 import Image from "next/image";
+import { uploadImage, validateFile, errorMessage, IMAGE_ACCEPT, MAX_IMAGE_MB } from "../_lib/upload";
 
 interface HeroContent {
   id: number;
   title: string;
-  subtitle?: string;
+  subtitle?: string | null;
   image_url: string;
-  cta_text?: string;
-  cta_link?: string;
-  bg_gradient?: string;
+  cta_text?: string | null;
+  cta_link?: string | null;
+  bg_gradient?: string | null;
   type: "carousel" | "card";
   order: number;
   is_active: boolean;
 }
 
+const inputCls =
+  "w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg p-3 outline-none focus:border-[var(--accent-metallic)]";
+
+function HeroItemCard({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: HeroContent;
+  onEdit: (item: HeroContent) => void;
+  onDelete: (item: HeroContent) => void;
+}) {
+  return (
+    <div className="relative group bg-[var(--bg-tertiary)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
+      <div className="aspect-video relative">
+        {item.image_url ? (
+          <Image
+            src={item.image_url}
+            alt={item.title}
+            fill
+            className={`object-cover ${item.is_active ? "" : "opacity-50 grayscale"}`}
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-600">
+            <ImageIcon />
+          </div>
+        )}
+        {!item.is_active && (
+          <span className="absolute top-2 left-2 text-xs bg-red-500/80 text-white px-2 py-0.5 rounded-full font-medium">
+            Inactivo
+          </span>
+        )}
+        {/* Always visible on touch screens; hover-reveal from md up */}
+        <div className="absolute inset-0 md:bg-black/50 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity flex items-end justify-end md:items-center md:justify-center gap-4 p-2">
+          <button
+            onClick={() => onEdit(item)}
+            className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+            aria-label={`Editar ${item.title}`}
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(item)}
+            className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+            aria-label={`Eliminar ${item.title}`}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <div className="p-4">
+        <h3 className="font-bold truncate">{item.title}</h3>
+        <p className="text-xs text-[var(--text-secondary)] truncate">
+          {item.subtitle}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminHeroPage() {
+  const { token } = useAuth();
   const [items, setItems] = useState<HeroContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [currentItem, setCurrentItem] = useState<Partial<HeroContent>>({});
   const [uploading, setUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
+    if (!token) return;
     try {
-      const token = localStorage.getItem("token");
-      const data = await api.get("/hero-content", token);
+      // Admin endpoint: includes inactive slides/cards
+      const data: HeroContent[] = await api.get("/admin/hero-content", token);
       setItems(data);
     } catch (error) {
       console.error("Failed to load content", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchContent();
+  }, [fetchContent]);
 
   const handleEdit = (item: HeroContent) => {
     setCurrentItem({ ...item });
+    setFormError("");
     setIsEditing(true);
   };
 
@@ -68,59 +136,83 @@ export default function AdminHeroPage() {
       is_active: true,
       bg_gradient: "from-purple-900 to-indigo-900",
     });
+    setFormError("");
     setIsEditing(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("¿Estás seguro de eliminar este elemento?")) return;
+  const handleDelete = async (item: HeroContent) => {
+    if (!confirm(`¿Eliminar "${item.title}"? También se borrará su imagen.`)) return;
     try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/admin/hero-content/${id}`, token);
+      await api.delete(`/admin/hero-content/${item.id}`, token);
       fetchContent();
-    } catch {
-      alert("Error al eliminar");
+    } catch (error) {
+      alert(errorMessage(error, "Error al eliminar"));
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving || uploading) return;
+    if (!currentItem.title?.trim()) {
+      setFormError("El título es obligatorio.");
+      return;
+    }
+    if (!currentItem.image_url) {
+      setFormError("Sube una imagen antes de guardar.");
+      return;
+    }
+    setFormError("");
+    setIsSaving(true);
+    const body = {
+      title: currentItem.title.trim(),
+      subtitle: currentItem.subtitle ?? null,
+      image_url: currentItem.image_url,
+      cta_text: currentItem.cta_text ?? null,
+      cta_link: currentItem.cta_link ?? null,
+      bg_gradient: currentItem.bg_gradient ?? null,
+      order: currentItem.order ?? 0,
+      is_active: currentItem.is_active ?? true,
+    };
     try {
-      const token = localStorage.getItem("token");
       if (currentItem.id) {
-        await api.put(
-          `/admin/hero-content/${currentItem.id}`,
-          currentItem,
-          token,
-        );
+        await api.put(`/admin/hero-content/${currentItem.id}`, body, token);
       } else {
-        await api.post("/admin/hero-content", currentItem, token);
+        await api.post("/admin/hero-content", { ...body, type: currentItem.type }, token);
       }
       setIsEditing(false);
       fetchContent();
-    } catch {
-      alert("Error al guardar");
+    } catch (error) {
+      setFormError(errorMessage(error, "Error al guardar"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
+    const validation = validateFile(file, "image", MAX_IMAGE_MB);
+    if (validation) {
+      setFormError(validation);
+      input.value = "";
+      return;
+    }
 
     setUploading(true);
+    setFormError("");
     try {
-      const token = localStorage.getItem("token");
-      const data = await api.upload("/admin/upload-image", formData, token);
-
-      setCurrentItem({ ...currentItem, image_url: data.url });
+      const url = await uploadImage(file, {
+        token,
+        serverEndpoint: "/admin/upload-image",
+        folder: "cms",
+      });
+      setCurrentItem((prev) => ({ ...prev, image_url: url }));
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Error desconocido";
-      alert("Error subiendo imagen: " + errorMessage);
+      setFormError("Error subiendo imagen: " + errorMessage(error, "Error desconocido"));
     } finally {
       setUploading(false);
+      input.value = "";
     }
   };
 
@@ -131,8 +223,11 @@ export default function AdminHeroPage() {
       </div>
     );
 
+  const carouselItems = items.filter((i) => i.type === "carousel");
+  const cardItems = items.filter((i) => i.type === "card");
+
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 p-0 md:p-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">
@@ -145,8 +240,8 @@ export default function AdminHeroPage() {
       </div>
 
       {/* Carousel Section */}
-      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 md:p-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Layout className="w-5 h-5 text-[var(--accent-metallic)]" />
             Carrusel Principal (Izquierda)
@@ -160,61 +255,25 @@ export default function AdminHeroPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items
-            .filter((i) => i.type === "carousel")
-            .map((item) => (
-              <div
-                key={item.id}
-                className="relative group bg-[var(--bg-tertiary)] rounded-xl overflow-hidden border border-[var(--border-subtle)]"
-              >
-                <div className="aspect-video relative">
-                  {item.image_url ? (
-                    <Image
-                      src={item.image_url}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-600">
-                      <ImageIcon />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold truncate">{item.title}</h3>
-                  <p className="text-xs text-[var(--text-secondary)] truncate">
-                    {item.subtitle}
-                  </p>
-                </div>
-              </div>
-            ))}
+          {carouselItems.map((item) => (
+            <HeroItemCard key={item.id} item={item} onEdit={handleEdit} onDelete={handleDelete} />
+          ))}
+          {carouselItems.length === 0 && (
+            <p className="col-span-full text-sm text-[var(--text-muted)] italic">
+              No hay slides todavía.
+            </p>
+          )}
         </div>
       </div>
 
       {/* Cards Section */}
-      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 md:p-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Layout className="w-5 h-5 text-[var(--accent-metallic)]" />
             Tarjetas Estáticas (Derecha)
           </h2>
-          {items.filter((i) => i.type === "card").length < 2 && (
+          {cardItems.length < 2 && (
             <button
               onClick={() => handleAddNew("card")}
               className="px-4 py-2 bg-[var(--accent-metallic)] text-white rounded-lg text-sm hover:opacity-90 flex items-center gap-2"
@@ -225,50 +284,14 @@ export default function AdminHeroPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items
-            .filter((i) => i.type === "card")
-            .map((item) => (
-              <div
-                key={item.id}
-                className="relative group bg-[var(--bg-tertiary)] rounded-xl overflow-hidden border border-[var(--border-subtle)]"
-              >
-                <div className="aspect-video relative">
-                  {item.image_url ? (
-                    <Image
-                      src={item.image_url}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-600">
-                      <ImageIcon />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold truncate">{item.title}</h3>
-                  <p className="text-xs text-[var(--text-secondary)] truncate">
-                    {item.subtitle}
-                  </p>
-                </div>
-              </div>
-            ))}
+          {cardItems.map((item) => (
+            <HeroItemCard key={item.id} item={item} onEdit={handleEdit} onDelete={handleDelete} />
+          ))}
+          {cardItems.length === 0 && (
+            <p className="col-span-full text-sm text-[var(--text-muted)] italic">
+              No hay tarjetas todavía.
+            </p>
+          )}
         </div>
       </div>
 
@@ -282,7 +305,9 @@ export default function AdminHeroPage() {
               </h2>
               <button
                 onClick={() => setIsEditing(false)}
-                className="text-[var(--text-muted)] hover:text-white"
+                disabled={isSaving}
+                className="text-[var(--text-muted)] hover:text-white disabled:opacity-50"
+                aria-label="Cerrar"
               >
                 <X />
               </button>
@@ -290,18 +315,18 @@ export default function AdminHeroPage() {
 
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm mb-1">Título</label>
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-1">Título *</label>
                   <input
-                    value={currentItem.title}
+                    value={currentItem.title || ""}
                     onChange={(e) =>
                       setCurrentItem({ ...currentItem, title: e.target.value })
                     }
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg p-3 outline-none focus:border-[var(--accent-metallic)]"
+                    className={inputCls}
                     required
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="md:col-span-2">
                   <label className="block text-sm mb-1">Subtítulo</label>
                   <input
                     value={currentItem.subtitle || ""}
@@ -311,15 +336,15 @@ export default function AdminHeroPage() {
                         subtitle: e.target.value,
                       })
                     }
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg p-3 outline-none focus:border-[var(--accent-metallic)]"
+                    className={inputCls}
                   />
                 </div>
 
-                <div className="col-span-2">
+                <div className="md:col-span-2">
                   <label className="block text-sm mb-1">
-                    Imagen (Se convertirá a WebP)
+                    Imagen * <span className="text-xs text-[var(--text-muted)]">(JPEG/PNG/WebP, máx. {MAX_IMAGE_MB}MB; hasta 4MB se convierte a WebP)</span>
                   </label>
-                  <div className="flex gap-4 items-center">
+                  <div className="flex flex-wrap gap-4 items-center">
                     <div className="relative w-32 h-20 bg-[var(--bg-tertiary)] rounded-lg overflow-hidden border border-[var(--border-subtle)]">
                       {currentItem.image_url ? (
                         <Image
@@ -340,21 +365,21 @@ export default function AdminHeroPage() {
                         type="file"
                         ref={fileInputRef}
                         className="hidden"
-                        accept="image/*"
+                        accept={IMAGE_ACCEPT}
                         onChange={handleImageUpload}
                       />
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-elevated)] flex items-center gap-2"
+                        disabled={uploading || isSaving}
+                        className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-elevated)] flex items-center gap-2 disabled:opacity-50"
                       >
                         {uploading ? (
                           <Loader2 className="animate-spin w-4 h-4" />
                         ) : (
                           <Upload className="w-4 h-4" />
                         )}
-                        Subir Imagen
+                        {uploading ? "Subiendo..." : "Subir Imagen"}
                       </button>
                     </div>
                   </div>
@@ -370,7 +395,7 @@ export default function AdminHeroPage() {
                         cta_text: e.target.value,
                       })
                     }
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg p-3 outline-none focus:border-[var(--accent-metallic)]"
+                    className={inputCls}
                   />
                 </div>
                 <div>
@@ -383,24 +408,64 @@ export default function AdminHeroPage() {
                         cta_link: e.target.value,
                       })
                     }
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded-lg p-3 outline-none focus:border-[var(--accent-metallic)]"
+                    className={inputCls}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm mb-1">Orden</label>
+                  <input
+                    type="number"
+                    value={currentItem.order ?? 0}
+                    onChange={(e) =>
+                      setCurrentItem({
+                        ...currentItem,
+                        order: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className={inputCls}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer self-end pb-3">
+                  <input
+                    type="checkbox"
+                    checked={currentItem.is_active ?? true}
+                    onChange={(e) =>
+                      setCurrentItem({
+                        ...currentItem,
+                        is_active: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 rounded"
+                  />
+                  Activo (visible en la portada)
+                </label>
               </div>
+
+              {formError && (
+                <div
+                  className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm"
+                  role="alert"
+                >
+                  {formError}
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-4 border-t border-[var(--border-subtle)] mt-4">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-6 py-2 rounded-xl hover:bg-[var(--bg-tertiary)]"
+                  disabled={isSaving}
+                  className="px-6 py-2 rounded-xl hover:bg-[var(--bg-tertiary)] disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[var(--accent-metallic)] text-white rounded-xl shadow-lg hover:bg-[var(--accent-metallic-hover)]"
+                  disabled={isSaving || uploading}
+                  className="px-6 py-2 bg-[var(--accent-metallic)] text-white rounded-xl shadow-lg hover:bg-[var(--accent-metallic-hover)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Guardar
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isSaving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
             </form>

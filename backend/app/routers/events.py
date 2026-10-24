@@ -5,6 +5,10 @@ from typing import List
 from .. import models, schemas
 from ..database import get_db
 from .admin import get_current_admin
+from ..supabase_client import delete_replaced_files
+
+# Event columns that may point at files hosted in our Supabase bucket
+EVENT_MEDIA_FIELDS = ("image_url", "flyer_url", "video_promo_url")
 
 router = APIRouter(
     prefix="/events",
@@ -49,6 +53,8 @@ def read_event(event_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.EventResponse, status_code=status.HTTP_201_CREATED)
 def create_event(event: schemas.EventCreate, db: Session = Depends(get_db), current_admin: models.User = Depends(get_current_admin)):
+    if not event.title.strip():
+        raise HTTPException(status_code=422, detail="El título del evento es obligatorio")
     db_event = models.Event(**event.dict())
     db.add(db_event)
     db.commit()
@@ -62,11 +68,17 @@ def update_event(event_id: int, event_update: schemas.EventUpdate, db: Session =
         raise HTTPException(status_code=404, detail="Event not found")
         
     update_data = event_update.dict(exclude_unset=True)
+    if "title" in update_data and not (update_data["title"] or "").strip():
+        raise HTTPException(status_code=422, detail="El título del evento es obligatorio")
+
+    old_media = [getattr(db_event, f) for f in EVENT_MEDIA_FIELDS if f in update_data]
     for key, value in update_data.items():
         setattr(db_event, key, value)
         
     db.commit()
     db.refresh(db_event)
+    # Remove replaced files only after the DB change is safely committed
+    delete_replaced_files(old_media, [getattr(db_event, f) for f in EVENT_MEDIA_FIELDS])
     return db_event
 
 @router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -74,9 +86,21 @@ def delete_event(event_id: int, db: Session = Depends(get_db), current_admin: mo
     db_event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if db_event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-        
+
+    # Tickets reference the event (NOT NULL FK). Don't silently wipe sold/valid
+    # tickets: ask the admin to deactivate the event instead.
+    tickets_q = db.query(models.EventTicket).filter(models.EventTicket.event_id == event_id)
+    if tickets_q.filter(models.EventTicket.status != "cancelado").count() > 0:
+        raise HTTPException(
+            status_code=409,
+            detail="Este evento tiene entradas emitidas. Desactívalo o cancela las entradas antes de eliminarlo",
+        )
+    tickets_q.delete(synchronize_session=False)
+
+    old_media = [getattr(db_event, f) for f in EVENT_MEDIA_FIELDS]
     db.delete(db_event)
     db.commit()
+    delete_replaced_files(old_media, [])
     return None
 
 

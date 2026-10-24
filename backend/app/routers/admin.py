@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional
-from .. import models, schemas, auth, database
+import logging
+import uuid
+from .. import models, schemas, auth, database, supabase_client
+
+logger = logging.getLogger("admin_router")
 
 router = APIRouter(tags=["Admin"])
 
@@ -79,23 +83,28 @@ def delete_user(
 @router.put("/admin/users/{user_id}", response_model=schemas.UserResponse)
 def update_user_details_admin(
     user_id: int,
-    full_name: Optional[str] = None,
-    email: Optional[str] = None,
-    role: Optional[str] = None, # "user", "admin"
+    payload: schemas.AdminUserUpdate,
     current_admin: models.User = Depends(get_current_admin),
     db: Session = Depends(database.get_db)
 ):
+    full_name = payload.full_name
+    email = payload.email
+    role = payload.role
+
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
     if user.role and user.role.name == "owner" and current_admin.id != user.id:
          raise HTTPException(status_code=403, detail="Cannot edit Owner")
+    # Nobody may grant the Owner role, not even to themselves
+    if role == "owner" and not (user.role and user.role.name == "owner"):
+        raise HTTPException(status_code=403, detail="Cannot assign Owner role")
     if current_admin.id != user.id:
         _ensure_can_manage(current_admin, user, role)
 
     # Role Update Logic
-    if role is not None:
+    if role is not None and not (user.role and user.role.name == role):
         if user.role and user.role.name == "owner":
              raise HTTPException(status_code=403, detail="Cannot change Owner role")
         
@@ -142,3 +151,75 @@ def get_admin_stats(admin: models.User = Depends(get_current_admin), db: Session
         "email_users": email_users,
         "recent_users": [schemas.UserResponse.model_validate(u) for u in recent_users]
     }
+
+
+# ============================================
+# DIRECT-TO-STORAGE UPLOADS
+# ============================================
+# Vercel Functions reject request bodies over 4.5 MB, so large files (videos,
+# big images) are uploaded by the browser straight to Supabase Storage using a
+# short-lived signed upload URL issued here.
+
+MB = 1024 * 1024
+UPLOAD_MAX_BYTES = {"image": 10 * MB, "video": 50 * MB}
+
+# content-type -> (extension, kind)
+UPLOAD_CONTENT_TYPES = {
+    "image/jpeg": ("jpg", "image"),
+    "image/png": ("png", "image"),
+    "image/webp": ("webp", "image"),
+    "video/mp4": ("mp4", "video"),
+    "video/webm": ("webm", "video"),
+    "video/ogg": ("ogv", "video"),
+    "video/quicktime": ("mov", "video"),
+}
+
+# folder -> kind of file it accepts
+UPLOAD_FOLDERS = {
+    "events": "image",
+    "events/videos": "video",
+    "talent": "image",
+    "talent/gallery": "image",
+    "talent/videos": "video",
+    "cms": "image",
+    "category-banners": "image",
+}
+
+
+@router.post("/admin/storage/signed-upload", response_model=schemas.SignedUploadResponse)
+def create_signed_upload(
+    payload: schemas.SignedUploadRequest,
+    current_admin: models.User = Depends(get_current_admin),
+):
+    folder = payload.folder.strip("/")
+    if folder not in UPLOAD_FOLDERS:
+        raise HTTPException(status_code=400, detail="Carpeta de destino no permitida")
+
+    content_type = (payload.content_type or "").lower().split(";")[0].strip()
+    if content_type not in UPLOAD_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Tipo de archivo no permitido. Imágenes: JPEG, PNG o WebP. Videos: MP4, WebM, OGG o MOV",
+        )
+    ext, kind = UPLOAD_CONTENT_TYPES[content_type]
+    if UPLOAD_FOLDERS[folder] != kind:
+        raise HTTPException(
+            status_code=400,
+            detail="Esta carpeta solo admite " + ("videos" if UPLOAD_FOLDERS[folder] == "video" else "imágenes"),
+        )
+
+    max_bytes = UPLOAD_MAX_BYTES[kind]
+    if payload.size > max_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"El archivo supera el máximo de {max_bytes // MB} MB",
+        )
+
+    # Never trust the client filename for the object path
+    path = f"{folder}/{uuid.uuid4().hex}.{ext}"
+    try:
+        result = supabase_client.create_signed_upload(path)
+    except Exception as exc:
+        logger.error("Signed upload URL creation failed for %s: %s", path, exc)
+        raise HTTPException(status_code=502, detail="No se pudo preparar la subida del archivo")
+    return result

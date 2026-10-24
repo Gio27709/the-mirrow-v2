@@ -9,6 +9,7 @@ import {
   DollarSign, MapPin, Image as ImageIcon, Video, Link2, X, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { uploadImage, uploadVideo, validateFile, errorMessage, IMAGE_ACCEPT, VIDEO_ACCEPT, MAX_IMAGE_MB, MAX_VIDEO_MB } from "../_lib/upload";
 
 interface TalentProfile {
   id: number; user_id: number; stage_name: string; category: string;
@@ -20,13 +21,25 @@ interface TalentProfile {
   included_services?: string[];
 }
 
-interface User { id: number; email: string; full_name: string; }
+interface User { id: number; email: string; full_name: string | null; }
+interface CategoryOption { id: number; name: string; slug: string; is_active?: boolean; }
+
+interface TalentPayload {
+  stage_name: string; category: string; bio: string; image_url: string | null;
+  base_price: number | null; price_currency: string; price_unit: string;
+  location: string | null; is_available: boolean; gallery_urls: string[] | null;
+  video_url: string | null; instagram_url: string | null; facebook_url: string | null;
+  website_url: string | null; tiktok_url: string | null; youtube_url: string | null;
+  included_services: string[] | null;
+}
+
+const MAX_GALLERY = 8;
 
 export default function AdminTalentPage() {
   const { token } = useAuth();
   const [talents, setTalents] = useState<TalentProfile[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -67,10 +80,10 @@ export default function AdminTalentPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [talentsData, usersData, categoriesData] = await Promise.all([
+      const [talentsData, usersData, categoriesData]: [TalentProfile[], User[], CategoryOption[]] = await Promise.all([
         api.get("/admin/talent", token),
         api.get("/admin/users", token),
-        api.get("/categories"),
+        api.get("/admin/categories", token),
       ]);
       if (talentsData) setTalents(talentsData);
       if (usersData) setUsers(usersData);
@@ -83,42 +96,46 @@ export default function AdminTalentPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) { setImageFile(file); setPreviewUrl(URL.createObjectURL(file)); }
+    if (!file) return;
+    const err = validateFile(file, "image", MAX_IMAGE_MB);
+    if (err) { alert(err); e.target.value = ""; return; }
+    setImageFile(file); setPreviewUrl(URL.createObjectURL(file));
   };
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || !token) return;
-    if (galleryUrls.length + files.length > 8) {
-      alert("Maximo 8 imagenes en la galeria"); return;
+    const input = e.target;
+    const files = input.files ? Array.from(input.files) : [];
+    if (files.length === 0 || !token) return;
+    if (galleryUrls.length + files.length > MAX_GALLERY) {
+      alert(`Máximo ${MAX_GALLERY} imágenes en la galería`); input.value = ""; return;
+    }
+    for (const file of files) {
+      const err = validateFile(file, "image", MAX_IMAGE_MB);
+      if (err) { alert(`${file.name}: ${err}`); input.value = ""; return; }
     }
     setIsUploadingGallery(true);
     try {
-      for (const file of Array.from(files)) {
-        const formData = new FormData();
-        formData.append("file", file);
-        const data = await api.upload("/admin/talent/upload-gallery", formData, token);
-        setGalleryUrls(prev => [...prev, data.url]);
+      for (const file of files) {
+        const url = await uploadImage(file, { token, serverEndpoint: "/admin/talent/upload-gallery", folder: "talent/gallery" });
+        setGalleryUrls(prev => [...prev, url]);
       }
-    } catch (err) { console.error(err); alert("Error subiendo imagen"); }
-    finally { setIsUploadingGallery(false); }
+    } catch (err) { console.error(err); alert(errorMessage(err, "Error subiendo imagen")); }
+    finally { setIsUploadingGallery(false); input.value = ""; }
   };
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file || !token) return;
-    if (file.size > 50 * 1024 * 1024) {
-      alert("El video no puede superar los 50MB");
-      return;
-    }
+    const validation = validateFile(file, "video", MAX_VIDEO_MB);
+    if (validation) { alert(validation); input.value = ""; return; }
     setIsVideoUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const data = await api.upload("/admin/talent/upload-video", formData, token);
-      setVideoUrl(data.url);
-    } catch (err) { console.error(err); alert("Error subiendo el video"); }
-    finally { setIsVideoUploading(false); }
+      // Direct to Supabase Storage: videos are far above Vercel's 4.5 MB body limit
+      const url = await uploadVideo(file, { token, folder: "talent/videos" });
+      setVideoUrl(url);
+    } catch (err) { console.error(err); alert(errorMessage(err, "Error subiendo el video")); }
+    finally { setIsVideoUploading(false); input.value = ""; }
   };
 
   const removeGalleryImage = (index: number) => {
@@ -148,7 +165,7 @@ export default function AdminTalentPage() {
 
   const handleEdit = (t: TalentProfile) => {
     setEditingId(t.id); setSelectedUserId(t.user_id); setStageName(t.stage_name);
-    setCategory(t.category); setBio(t.bio); setPreviewUrl(t.image_url);
+    setCategory(t.category); setBio(t.bio || ""); setPreviewUrl(t.image_url || null); setImageFile(null);
     setBasePrice(t.base_price?.toString() || ""); setPriceCurrency(t.price_currency || "USD");
     setPriceUnit(t.price_unit || "Evento"); setLocation(t.location || "");
     setIsAvailable(t.is_available ?? true); setGalleryUrls(t.gallery_urls || []);
@@ -159,30 +176,29 @@ export default function AdminTalentPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Estás seguro de que deseas eliminar este perfil?")) return;
-    try { await api.delete(`/admin/talent/${id}`, token); fetchData(); }
-    catch (error) { console.error(error); alert("Error al eliminar"); }
+  const handleDelete = async (talent: TalentProfile) => {
+    if (!window.confirm(`¿Eliminar el perfil de "${talent.stage_name}"? También se borrarán sus fotos y video.`)) return;
+    try { await api.delete(`/admin/talent/${talent.id}`, token); fetchData(); }
+    catch (error) { console.error(error); alert(errorMessage(error, "No se pudo eliminar el perfil")); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || isSaving) return;
+    if (!stageName.trim()) { alert("El nombre artístico es obligatorio"); return; }
     if (!category) { alert("Debe seleccionar una categoría"); return; }
+    if (isUploadingGallery || isVideoUploading) { alert("Espera a que terminen de subirse los archivos"); return; }
     if (!editingId && !selectedUserId) { alert("Debe seleccionar un usuario"); return; }
 
     setIsSaving(true);
     try {
-      let imageUrl = previewUrl || "";
+      let imageUrl = imageFile ? "" : (previewUrl || "");
       if (imageFile) {
-        const formData = new FormData();
-        formData.append("file", imageFile);
-        const uploadData = await api.upload("/admin/talent/upload-image", formData, token);
-        imageUrl = uploadData.url;
+        imageUrl = await uploadImage(imageFile, { token, serverEndpoint: "/admin/talent/upload-image", folder: "talent" });
       }
 
-      const payload: any = {
-        stage_name: stageName, category, bio, image_url: imageUrl,
+      const payload: TalentPayload = {
+        stage_name: stageName.trim(), category, bio, image_url: imageUrl || null,
         base_price: basePrice ? parseFloat(basePrice) : null,
         price_currency: priceCurrency, price_unit: priceUnit,
         location: location || null, is_available: isAvailable,
@@ -202,7 +218,7 @@ export default function AdminTalentPage() {
       fetchData(); resetForm();
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : "Error al guardar");
+      alert(errorMessage(error, "Error al guardar"));
     } finally { setIsSaving(false); }
   };
 
@@ -238,6 +254,10 @@ export default function AdminTalentPage() {
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground)]"></div>
         </div>
+      ) : talents.length === 0 ? (
+        <div className="py-12 text-center text-[var(--text-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-2xl">
+          Aún no hay talentos. Pulsa <span className="font-semibold">Nuevo Talento</span> para promover a un usuario.
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {talents.map((talent) => (
@@ -252,6 +272,9 @@ export default function AdminTalentPage() {
                   {getCategoryIcon(talent.category)}
                   <span className="capitalize">{talent.category.replace(/-/g, " ")}</span>
                 </div>
+                {!talent.is_active && (
+                  <div className="absolute top-2 left-2 bg-red-500/80 px-2 py-1 rounded-lg text-xs font-medium text-white">Inactivo</div>
+                )}
                 {talent.base_price && (
                   <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-green-400">
                     ${talent.base_price} {talent.price_currency}/{talent.price_unit}
@@ -266,7 +289,7 @@ export default function AdminTalentPage() {
                   <span className="text-xs text-[var(--text-secondary)]">ID: {talent.id}</span>
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit(talent)} className="p-2 hover:bg-[var(--hover-bg)] rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Editar"><Edit className="w-4 h-4" /></button>
-                    <button onClick={() => handleDelete(talent.id)} className="p-2 hover:bg-red-500/10 rounded-lg text-[var(--text-secondary)] hover:text-red-500 transition-colors" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDelete(talent)} className="p-2 hover:bg-red-500/10 rounded-lg text-[var(--text-secondary)] hover:text-red-500 transition-colors" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -304,7 +327,7 @@ export default function AdminTalentPage() {
                   <label className={labelCls}>Categoría</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
                     <option value="">Seleccionar categoría...</option>
-                    {categories.map((cat: any) => (<option key={cat.id} value={cat.slug}>{cat.name}</option>))}
+                    {categories.map((cat) => (<option key={cat.id} value={cat.slug}>{cat.name}{cat.is_active === false ? " (inactiva)" : ""}</option>))}
                   </select>
                 </div>
                 <div>
@@ -312,10 +335,10 @@ export default function AdminTalentPage() {
                   <textarea value={bio} onChange={(e) => setBio(e.target.value)} className={`${inputCls} h-20`} placeholder="Descripción del artista..." />
                 </div>
                 <div>
-                  <label className={labelCls}>Foto Promocional</label>
+                  <label className={labelCls}>Foto Promocional <span className="text-xs text-[var(--text-muted)] font-normal">(JPEG/PNG/WebP, máx. {MAX_IMAGE_MB}MB)</span></label>
                   <div className="flex items-center gap-4">
                     {previewUrl && <img src={previewUrl} alt="Preview" className="w-16 h-16 rounded-lg object-cover border border-[var(--border-color)]" />}
-                    <input type="file" accept="image/*" onChange={handleImageChange}
+                    <input type="file" accept={IMAGE_ACCEPT} onChange={handleImageChange}
                       className="block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--foreground)] file:text-[var(--background)] hover:file:opacity-90" />
                   </div>
                 </div>
@@ -332,7 +355,7 @@ export default function AdminTalentPage() {
                     {/* --- PRICING --- */}
                     <div className="p-4 bg-[var(--bg-secondary)] rounded-xl space-y-3">
                       <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-400" /> Precio y Ubicación</h4>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className={labelCls}>Precio Base</label>
                           <input type="number" step="0.01" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className={inputCls} placeholder="350" />
@@ -364,21 +387,22 @@ export default function AdminTalentPage() {
                     <div className="p-4 bg-[var(--bg-secondary)] rounded-xl space-y-3">
                       <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2"><ImageIcon className="w-4 h-4 text-pink-400" /> Galería de Eventos (máx. 8)</h4>
                       {galleryUrls.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {galleryUrls.map((url, i) => (
                             <div key={i} className="relative group aspect-square rounded-lg overflow-hidden">
                               <img src={url} alt={`Gallery ${i}`} className="w-full h-full object-cover" />
                               <button type="button" onClick={() => removeGalleryImage(i)}
-                                className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                aria-label="Quitar imagen"
+                                className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <X className="w-3 h-3 text-white" />
                               </button>
                             </div>
                           ))}
                         </div>
                       )}
-                      {galleryUrls.length < 8 && (
+                      {galleryUrls.length < MAX_GALLERY && (
                         <div className="relative">
-                          <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} disabled={isUploadingGallery}
+                          <input type="file" accept={IMAGE_ACCEPT} multiple onChange={handleGalleryUpload} disabled={isUploadingGallery}
                             className="block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-pink-500/20 file:text-pink-400 hover:file:bg-pink-500/30 disabled:opacity-50" />
                           {isUploadingGallery && <Loader2 className="absolute right-2 top-2 w-5 h-5 animate-spin text-pink-400" />}
                         </div>
@@ -393,11 +417,11 @@ export default function AdminTalentPage() {
                         
                         <div className="relative flex items-center justify-center w-full py-2">
                           <hr className="w-full border-[var(--border-color)]" />
-                          <span className="absolute px-3 bg-[var(--bg-secondary)] text-xs text-[var(--text-secondary)] uppercase font-bold">O Sube un Video (Máx 50MB)</span>
+                          <span className="absolute px-3 bg-[var(--bg-secondary)] text-xs text-[var(--text-secondary)] uppercase font-bold">O Sube un Video (Máx {MAX_VIDEO_MB}MB)</span>
                         </div>
 
                         <div className="relative">
-                          <input type="file" accept="video/mp4,video/webm,video/ogg" onChange={handleVideoUpload} disabled={isVideoUploading}
+                          <input type="file" accept={VIDEO_ACCEPT} onChange={handleVideoUpload} disabled={isVideoUploading}
                             className="block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 disabled:opacity-50" />
                           {isVideoUploading && <Loader2 className="absolute right-2 top-2 w-5 h-5 animate-spin text-purple-400" />}
                         </div>
@@ -407,7 +431,7 @@ export default function AdminTalentPage() {
                     {/* --- SOCIAL --- */}
                     <div className="p-4 bg-[var(--bg-secondary)] rounded-xl space-y-3">
                       <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2"><Link2 className="w-4 h-4 text-blue-400" /> Redes Sociales</h4>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div><label className={labelCls}>Instagram</label><input type="url" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} className={inputCls} placeholder="https://instagram.com/..." /></div>
                         <div><label className={labelCls}>Facebook</label><input type="url" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} className={inputCls} placeholder="https://facebook.com/..." /></div>
                         <div><label className={labelCls}>TikTok</label><input type="url" value={tiktokUrl} onChange={(e) => setTiktokUrl(e.target.value)} className={inputCls} placeholder="https://tiktok.com/@..." /></div>
@@ -445,7 +469,7 @@ export default function AdminTalentPage() {
                 <div className="pt-4 flex justify-end gap-3">
                   <button type="button" onClick={resetForm} disabled={isSaving}
                     className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors disabled:opacity-50">Cancelar</button>
-                  <button type="submit" disabled={isSaving}
+                  <button type="submit" disabled={isSaving || isUploadingGallery || isVideoUploading}
                     className="bg-[var(--foreground)] text-[var(--background)] px-6 py-2 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                     {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                     {isSaving ? (editingId ? "Guardando..." : "Creando...") : (editingId ? "Guardar Cambios" : "Crear Perfil")}

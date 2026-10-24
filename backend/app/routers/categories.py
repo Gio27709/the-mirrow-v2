@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
-from .. import models, auth, database
-from ..supabase_client import upload_image, get_path_from_url, delete_image
+from .. import models, database
+from ..supabase_client import upload_image, delete_file_by_url
+from .admin import get_current_admin
 from pydantic import BaseModel
 import uuid
 
@@ -42,19 +43,6 @@ class CategoryResponse(CategoryCreate):
     class Config:
         from_attributes = True
 
-# ── Auth Helper ───────────────────────────────────────────────
-def get_current_admin(token: str = Depends(auth.oauth2_scheme), db: Session = Depends(database.get_db)):
-    try:
-        payload = auth.jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
-        email: str = payload.get("sub")
-    except auth.JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user or not user.role or user.role.name not in ["admin", "owner"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    return user
-
 # ── Public Endpoints ──────────────────────────────────────────
 
 @router.get("/categories", response_model=list[CategoryResponse])
@@ -76,12 +64,22 @@ def get_banner_specs():
 
 # ── Admin CRUD Endpoints ──────────────────────────────────────
 
+@router.get("/admin/categories", response_model=list[CategoryResponse])
+def get_all_categories_admin(
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    """All categories, including inactive ones (admin only)."""
+    return db.query(models.Category).order_by(models.Category.order, models.Category.id).all()
+
 @router.post("/admin/categories", response_model=CategoryResponse)
 def create_category(
     category: CategoryCreate,
     admin: models.User = Depends(get_current_admin),
     db: Session = Depends(database.get_db)
 ):
+    if not category.name.strip() or not category.slug.strip():
+        raise HTTPException(status_code=422, detail="El nombre de la categoría es obligatorio")
     # Check slug uniqueness
     existing = db.query(models.Category).filter(models.Category.slug == category.slug).first()
     if existing:
@@ -105,6 +103,8 @@ def update_category(
         raise HTTPException(status_code=404, detail="Category not found")
         
     update_data = category_update.dict(exclude_unset=True)
+    if "name" in update_data and not (update_data["name"] or "").strip():
+        raise HTTPException(status_code=422, detail="El nombre de la categoría es obligatorio")
     for key, value in update_data.items():
         setattr(db_cat, key, value)
         
@@ -122,14 +122,11 @@ def delete_category(
     if not db_cat:
         raise HTTPException(status_code=404, detail="Category not found")
     
-    # Clean up banner from Supabase Storage if exists
-    if db_cat.banner_url:
-        old_path = get_path_from_url(db_cat.banner_url)
-        if old_path:
-            delete_image(old_path)
-    
+    old_banner = db_cat.banner_url
     db.delete(db_cat)
     db.commit()
+    # Clean up banner from Supabase Storage (best effort, after the commit)
+    delete_file_by_url(old_banner)
     return None
 
 # ── Banner Upload Endpoint ────────────────────────────────────
@@ -162,21 +159,21 @@ async def upload_category_banner(
             detail=f"La imagen excede el tamaño máximo de {BANNER_MAX_SIZE_MB}MB"
         )
     
-    # Delete old banner from storage if exists
-    if db_cat.banner_url:
-        old_path = get_path_from_url(db_cat.banner_url)
-        if old_path:
-            delete_image(old_path)
-    
-    # Upload new banner to Supabase Storage
-    ext = file.filename.split(".")[-1] if file.filename and "." in file.filename else "webp"
+    # Upload new banner to Supabase Storage (extension derived from the validated type)
+    ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[file.content_type]
     filename = f"banner_{db_cat.slug}_{uuid.uuid4().hex[:8]}.{ext}"
-    public_url = upload_image(contents, filename, folder="category-banners")
+    try:
+        public_url = upload_image(contents, filename, folder="category-banners", content_type=file.content_type)
+    except Exception:
+        raise HTTPException(status_code=502, detail="No se pudo subir el banner. Inténtalo de nuevo")
     
-    # Update database record
+    # Update database record, then drop the previous banner
+    old_banner = db_cat.banner_url
     db_cat.banner_url = public_url
     db.commit()
     db.refresh(db_cat)
+    if old_banner and old_banner != public_url:
+        delete_file_by_url(old_banner)
     return db_cat
 
 @router.delete("/admin/categories/{category_id}/banner", response_model=CategoryResponse)
@@ -191,11 +188,10 @@ def delete_category_banner(
         raise HTTPException(status_code=404, detail="Category not found")
     
     if db_cat.banner_url:
-        old_path = get_path_from_url(db_cat.banner_url)
-        if old_path:
-            delete_image(old_path)
+        old_banner = db_cat.banner_url
         db_cat.banner_url = None
         db.commit()
         db.refresh(db_cat)
+        delete_file_by_url(old_banner)
     
     return db_cat

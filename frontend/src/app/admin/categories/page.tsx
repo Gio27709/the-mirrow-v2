@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
+import { gradientStyle } from "@/lib/colors";
 import { useAuth } from "@/context/AuthContext";
-import { useCategories, Category } from "@/context/CategoryContext";
+import { useCategories } from "@/context/CategoryContext";
+import { errorMessage } from "../_lib/upload";
 import {
   Plus,
   Pencil,
@@ -42,6 +44,21 @@ const gradientOptions = [
   { label: "Teal/Cyan", from: "teal-500", to: "cyan-400" },
 ];
 
+/* ── Types ────────────────────────────────────────────────── */
+interface AdminCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  banner_url: string | null;
+  gradient_from: string;
+  gradient_to: string;
+  icon_name?: string | null;
+  order: number;
+  is_active: boolean;
+}
+
 /* ── Banner Specs (must match backend) ────────────────────── */
 const BANNER_SPECS = {
   width: 1200,
@@ -53,10 +70,15 @@ const BANNER_SPECS = {
 
 export default function AdminCategoriesPage() {
   const { token, user } = useAuth();
-  const { categories, refreshCategories } = useCategories();
+  // Public context (navbar) only lists active categories; refresh it after changes
+  const { refreshCategories } = useCategories();
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isRemovingBanner, setIsRemovingBanner] = useState(false);
+  const [formError, setFormError] = useState("");
 
   // Form State
   const [name, setName] = useState("");
@@ -66,12 +88,37 @@ export default function AdminCategoriesPage() {
   const [gradientFrom, setGradientFrom] = useState("indigo-500");
   const [gradientTo, setGradientTo] = useState("purple-500");
   const [imageUrl, setImageUrl] = useState("");
+  const [isActive, setIsActive] = useState(true);
 
   // Banner Upload State
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* ── Data ─────────────────────────────────────────────── */
+
+  const fetchCategories = useCallback(async () => {
+    if (!token) return;
+    try {
+      // Admin endpoint: includes inactive categories
+      const data: AdminCategory[] = await api.get("/admin/categories", token);
+      setCategories(data);
+    } catch (error) {
+      console.error("Failed to load categories", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const refreshAll = () => {
+    fetchCategories();
+    refreshCategories();
+  };
 
   /* ── Helpers ──────────────────────────────────────────── */
 
@@ -83,35 +130,39 @@ export default function AdminCategoriesPage() {
     setGradientFrom("indigo-500");
     setGradientTo("purple-500");
     setImageUrl("");
+    setIsActive(true);
     setBannerFile(null);
     setBannerPreview(null);
     setEditingCategory(null);
     setIsModalOpen(false);
     setIsUploading(false);
+    setFormError("");
   };
 
-  const handleEdit = (cat: Category) => {
+  const handleEdit = (cat: AdminCategory) => {
     setEditingCategory(cat);
     setName(cat.name);
     setSlug(cat.slug);
-    setDescription(cat.description);
+    setDescription(cat.description || "");
     setIconName(cat.icon_name || "Layers");
     setGradientFrom(cat.gradient_from);
     setGradientTo(cat.gradient_to);
     setImageUrl(cat.image_url || "");
+    setIsActive(cat.is_active);
     setBannerPreview(cat.banner_url || null);
     setBannerFile(null);
+    setFormError("");
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Estás seguro de eliminar esta categoría?")) return;
+  const handleDelete = async (cat: AdminCategory) => {
+    if (!window.confirm(`¿Eliminar la categoría "${cat.name}"? Esta acción no se puede deshacer.`)) return;
     try {
-      await api.delete(`/admin/categories/${id}`, token);
-      refreshCategories();
+      await api.delete(`/admin/categories/${cat.id}`, token);
+      refreshAll();
     } catch (error) {
       console.error("Failed to delete category", error);
-      alert("Error al eliminar categoría");
+      alert(errorMessage(error, "Error al eliminar categoría"));
     }
   };
 
@@ -152,16 +203,50 @@ export default function AdminCategoriesPage() {
 
   const handleDragLeave = () => setIsDragging(false);
 
-  const removeBanner = () => {
-    setBannerFile(null);
-    setBannerPreview(null);
+  const removeBanner = async () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    // A new file not saved yet: just discard it and go back to the saved banner
+    if (bannerFile) {
+      setBannerFile(null);
+      setBannerPreview(editingCategory?.banner_url || null);
+      return;
+    }
+
+    // Saved banner: delete it on the server
+    if (editingCategory?.banner_url) {
+      if (!window.confirm("¿Quitar el banner guardado de esta categoría?")) return;
+      setIsRemovingBanner(true);
+      setFormError("");
+      try {
+        const updated: AdminCategory = await api.delete(
+          `/admin/categories/${editingCategory.id}/banner`,
+          token,
+        );
+        setEditingCategory(updated);
+        setBannerPreview(null);
+        refreshAll();
+      } catch (error) {
+        setFormError(errorMessage(error, "No se pudo quitar el banner"));
+      } finally {
+        setIsRemovingBanner(false);
+      }
+      return;
+    }
+
+    setBannerPreview(null);
   };
 
   /* ── Submit Handler ────────────────────────────────────── */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading) return;
+    if (!name.trim()) {
+      setFormError("El nombre de la categoría es obligatorio.");
+      return;
+    }
+    setFormError("");
     setIsUploading(true);
 
     let finalSlug = slug;
@@ -175,7 +260,7 @@ export default function AdminCategoriesPage() {
     }
 
     const payload = {
-      name,
+      name: name.trim(),
       slug: finalSlug,
       description,
       image_url: imageUrl,
@@ -184,20 +269,33 @@ export default function AdminCategoriesPage() {
       gradient_to: gradientTo,
     };
 
+    if (!finalSlug) {
+      setFormError("No se pudo generar el slug. Escribe uno manualmente (solo letras, números y guiones).");
+      setIsUploading(false);
+      return;
+    }
+
+    let savedCat: AdminCategory;
     try {
-      let savedCat;
       if (editingCategory) {
         savedCat = await api.put(
           `/admin/categories/${editingCategory.id}`,
-          payload,
+          { ...payload, is_active: isActive },
           token,
         );
       } else {
         savedCat = await api.post("/admin/categories", payload, token);
       }
+    } catch (error: unknown) {
+      console.error("Error saving category", error);
+      setFormError(errorMessage(error, "Error al guardar categoría"));
+      setIsUploading(false);
+      return;
+    }
 
-      // Upload banner if a new file was selected
-      if (bannerFile && savedCat?.id) {
+    // Upload banner if a new file was selected
+    if (bannerFile) {
+      try {
         const formData = new FormData();
         formData.append("file", bannerFile);
         await api.upload(
@@ -205,18 +303,22 @@ export default function AdminCategoriesPage() {
           formData,
           token,
         );
+      } catch (error: unknown) {
+        console.error("Error uploading banner", error);
+        // The category itself is saved: switch to edit mode so a retry doesn't create a duplicate
+        setEditingCategory(savedCat);
+        setSlug(savedCat.slug);
+        setFormError(
+          `La categoría se guardó, pero el banner no se pudo subir: ${errorMessage(error, "error desconocido")}. Puedes intentarlo de nuevo.`,
+        );
+        setIsUploading(false);
+        refreshAll();
+        return;
       }
-
-      refreshCategories();
-      resetForm();
-    } catch (error: unknown) {
-      console.error("Error saving category", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Error al guardar categoría";
-      alert(errorMessage);
-    } finally {
-      setIsUploading(false);
     }
+
+    refreshAll();
+    resetForm();
   };
 
   /* ── Auth Gate ──────────────────────────────────────────── */
@@ -229,7 +331,7 @@ export default function AdminCategoriesPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center bg-[var(--bg-secondary)] p-6 rounded-2xl border border-[var(--border-subtle)]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-[var(--bg-secondary)] p-6 rounded-2xl border border-[var(--border-subtle)]">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">
             Gestión de Categorías
@@ -239,8 +341,11 @@ export default function AdminCategoriesPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
+          onClick={() => {
+            resetForm();
+            setIsModalOpen(true);
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Nueva Categoría
@@ -267,9 +372,7 @@ export default function AdminCategoriesPage() {
               ) : (
                 <div
                   className="w-full h-full"
-                  style={{
-                    background: `linear-gradient(135deg, var(--gradient-from, #6366f1), var(--gradient-to, #a855f7))`,
-                  }}
+                  style={gradientStyle(cat.gradient_from, cat.gradient_to)}
                 />
               )}
               {/* Overlay */}
@@ -287,11 +390,18 @@ export default function AdminCategoriesPage() {
                 })()}
               </div>
               {/* Banner badge */}
-              {cat.banner_url && (
-                <span className="absolute top-2 left-2 text-[10px] bg-green-500/80 text-white px-2 py-0.5 rounded-full backdrop-blur-sm font-medium">
-                  Banner activo
-                </span>
-              )}
+              <div className="absolute top-2 left-2 flex gap-1">
+                {cat.banner_url && (
+                  <span className="text-[10px] bg-green-500/80 text-white px-2 py-0.5 rounded-full backdrop-blur-sm font-medium">
+                    Banner activo
+                  </span>
+                )}
+                {!cat.is_active && (
+                  <span className="text-[10px] bg-red-500/80 text-white px-2 py-0.5 rounded-full backdrop-blur-sm font-medium">
+                    Inactiva
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Info */}
@@ -303,16 +413,18 @@ export default function AdminCategoriesPage() {
                 /{cat.slug}
               </p>
 
-              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleEdit(cat)}
                   className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full text-blue-500"
+                  aria-label={`Editar ${cat.name}`}
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(cat.id)}
+                  onClick={() => handleDelete(cat)}
                   className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full text-red-500"
+                  aria-label={`Eliminar ${cat.name}`}
                 >
                   <Trash className="w-4 h-4" />
                 </button>
@@ -320,7 +432,12 @@ export default function AdminCategoriesPage() {
             </div>
           </div>
         ))}
-        {categories.length === 0 && (
+        {isLoading && (
+          <div className="col-span-full py-12 flex justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-[var(--text-muted)]" />
+          </div>
+        )}
+        {!isLoading && categories.length === 0 && (
           <div className="col-span-full py-12 text-center text-[var(--text-muted)] italic">
             No hay categorías dinámicas creadas aún.
           </div>
@@ -338,7 +455,9 @@ export default function AdminCategoriesPage() {
               </h2>
               <button
                 onClick={resetForm}
-                className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full"
+                disabled={isUploading}
+                className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full disabled:opacity-50"
+                aria-label="Cerrar"
               >
                 <X className="w-5 h-5 text-[var(--text-secondary)]" />
               </button>
@@ -441,14 +560,19 @@ export default function AdminCategoriesPage() {
                       className="object-cover"
                       unoptimized
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/40 transition-colors flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/0 md:group-hover/preview:bg-black/40 transition-colors flex items-center justify-center">
                       <button
                         type="button"
                         onClick={removeBanner}
-                        className="opacity-0 group-hover/preview:opacity-100 transition-opacity bg-red-500/90 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+                        disabled={isRemovingBanner || isUploading}
+                        className="opacity-100 md:opacity-0 md:group-hover/preview:opacity-100 focus:opacity-100 transition-opacity bg-red-500/90 hover:bg-red-600 disabled:opacity-60 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
                       >
-                        <Trash className="w-4 h-4" />
-                        Quitar banner
+                        {isRemovingBanner ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash className="w-4 h-4" />
+                        )}
+                        {bannerFile ? "Descartar imagen nueva" : "Quitar banner"}
                       </button>
                     </div>
                     {bannerFile && (
@@ -533,10 +657,9 @@ export default function AdminCategoriesPage() {
                                 : "border-transparent opacity-70 hover:opacity-100"
                             }
                           `}
-                          style={{
-                            background: `linear-gradient(to right, var(--tw-gradient-from-fallback, #6366f1), var(--tw-gradient-to-fallback, #a855f7))`,
-                          }}
+                          style={gradientStyle(opt.from, opt.to)}
                           title={opt.label}
+                          aria-label={opt.label}
                         />
                       ))}
                     </div>
@@ -583,9 +706,7 @@ export default function AdminCategoriesPage() {
                     ) : (
                       <div
                         className="w-full h-full"
-                        style={{
-                          background: `linear-gradient(135deg, #6366f1, #a855f7)`,
-                        }}
+                        style={gradientStyle(gradientFrom, gradientTo)}
                       />
                     )}
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
@@ -606,12 +727,35 @@ export default function AdminCategoriesPage() {
                 </div>
               </div>
 
+              {/* Visibility (only for existing categories; new ones start active) */}
+              {editingCategory && (
+                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="w-4 h-4 rounded"
+                  />
+                  Activa (visible en la web)
+                </label>
+              )}
+
+              {formError && (
+                <div
+                  className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm"
+                  role="alert"
+                >
+                  {formError}
+                </div>
+              )}
+
               {/* Submit */}
               <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border-subtle)]">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 rounded-lg hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
+                  disabled={isUploading}
+                  className="px-4 py-2 rounded-lg hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] disabled:opacity-50"
                 >
                   Cancelar
                 </button>

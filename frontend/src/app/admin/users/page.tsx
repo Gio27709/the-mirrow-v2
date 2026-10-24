@@ -2,11 +2,10 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
-  MoreHorizontal,
   Shield,
   Crown,
   X,
@@ -16,25 +15,25 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { errorMessage } from "../_lib/upload";
 
 interface UserData {
   id: number;
   email: string;
-  username: string;
-  full_name: string;
-  profile_image_url: string;
+  username: string | null;
+  full_name: string | null;
+  profile_image_url: string | null;
   auth_provider: string;
   is_active: boolean;
   role: "user" | "admin" | "owner";
 }
 
 export default function UsersPage() {
-  const { user: currentUser, refreshUser } = useAuth();
+  const { user: currentUser, refreshUser, token } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [loadError, setLoadError] = useState("");
 
   // Modal States
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -44,69 +43,76 @@ export default function UsersPage() {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState("user"); // State for role
+  const [isSaving, setIsSaving] = useState(false);
+  const [modalError, setModalError] = useState("");
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
+    if (!token) return;
     try {
-      const token = localStorage.getItem("token");
-      const data = await api.get("/admin/users", token);
+      const data: UserData[] = await api.get("/admin/users", token);
       setUsers(data);
-      setFilteredUsers(data);
+      setLoadError("");
     } catch (error) {
       console.error("Failed to fetch users", error);
+      setLoadError(errorMessage(error, "No se pudieron cargar los usuarios"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    const lowerSearch = search.toLowerCase();
-    const filtered = users.filter(
-      (user) =>
-        user.email.toLowerCase().includes(lowerSearch) ||
-        (user.full_name && user.full_name.toLowerCase().includes(lowerSearch)),
-    );
-    setFilteredUsers(filtered);
-  }, [search, users]);
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const lowerSearch = search.trim().toLowerCase();
+  const filteredUsers = lowerSearch
+    ? users.filter(
+        (user) =>
+          user.email.toLowerCase().includes(lowerSearch) ||
+          (user.full_name && user.full_name.toLowerCase().includes(lowerSearch)),
+      )
+    : users;
+
+  const openDeleteModal = (user: UserData) => {
+    setModalError("");
+    setDeletingUser(user);
+  };
 
   const handleDelete = async () => {
-    if (!deletingUser) return;
+    if (!deletingUser || isSaving) return;
+    setIsSaving(true);
+    setModalError("");
     try {
-      const token = localStorage.getItem("token");
       await api.delete(`/admin/users/${deletingUser.id}`, token);
-      setUsers(users.filter((u) => u.id !== deletingUser.id));
+      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
       setDeletingUser(null);
-    } catch {
-      alert("No se pudo eliminar el usuario (¿Es Owner?)");
+    } catch (error) {
+      // Backend reasons (owner protection, admins managed only by the owner...) come translated by api.ts
+      setModalError(errorMessage(error, "No se pudo eliminar el usuario"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleEdit = async () => {
-    if (!editingUser) return;
+    if (!editingUser || isSaving) return;
+    const email = editEmail.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setModalError("Introduce un correo electrónico válido.");
+      return;
+    }
+    setIsSaving(true);
+    setModalError("");
     try {
-      const token = localStorage.getItem("token");
-      // Pass role in params
-      await api.put(
-        `/admin/users/${editingUser.id}?full_name=${encodeURIComponent(editName)}&email=${encodeURIComponent(editEmail)}&role=${editRole}`,
-        {},
-        token,
-      );
+      // JSON body (not query params) so personal data doesn't end up in server logs
+      const body: { full_name: string; email: string; role?: string } = {
+        full_name: editName.trim(),
+        email,
+      };
+      if (editRole !== editingUser.role) body.role = editRole;
+      const updated: UserData = await api.put(`/admin/users/${editingUser.id}`, body, token);
 
-      setUsers(
-        users.map((u) =>
-          u.id === editingUser.id
-            ? {
-                ...u,
-                full_name: editName,
-                email: editEmail,
-                role: editRole as UserData["role"],
-              }
-            : u,
-        ),
-      );
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
 
       // Logic to update global context if we edited ourselves
       if (currentUser && currentUser.id === editingUser.id) {
@@ -114,8 +120,10 @@ export default function UsersPage() {
       }
 
       setEditingUser(null);
-    } catch {
-      alert("No se pudo actualizar el usuario");
+    } catch (error) {
+      setModalError(errorMessage(error, "No se pudo actualizar el usuario"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -124,7 +132,7 @@ export default function UsersPage() {
     setEditName(user.full_name || "");
     setEditEmail(user.email);
     setEditRole(user.role); // Init role
-    setOpenMenuId(null);
+    setModalError("");
   };
 
   if (loading)
@@ -135,7 +143,7 @@ export default function UsersPage() {
     );
 
   return (
-    <div className="space-y-6" onClick={() => setOpenMenuId(null)}>
+    <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
@@ -146,23 +154,28 @@ export default function UsersPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
             <input
               type="text"
               placeholder="Buscar usuario..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500 focus:outline-none w-64"
+              className="pl-10 pr-4 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500 focus:outline-none w-full md:w-64"
             />
           </div>
         </div>
       </header>
 
-      {/* Remove overflow-hidden to allow dropdowns */}
-      <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-2xl min-h-[400px]">
-        <table className="w-full">
+      {loadError && (
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm" role="alert">
+          {loadError}
+        </div>
+      )}
+
+      <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-2xl min-h-[400px] overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/50">
               <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider rounded-tl-2xl">
@@ -183,7 +196,7 @@ export default function UsersPage() {
             {filteredUsers.map((user) => (
               <tr
                 key={user.id}
-                className="group hover:bg-[var(--bg-tertiary)]/50 transition-colors relative"
+                className="hover:bg-[var(--bg-tertiary)]/50 transition-colors"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -235,52 +248,30 @@ export default function UsersPage() {
                     {user.is_active ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuId(openMenuId === user.id ? null : user.id);
-                    }}
-                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 rounded-full hover:bg-[var(--bg-tertiary)]"
-                    disabled={user.role === "owner"}
-                    style={{ opacity: user.role === "owner" ? 0.5 : 1 }}
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
-
-                  {/* Dropdown Menu - Simplified */}
-                  <AnimatePresence>
-                    {openMenuId === user.id && user.role !== "owner" && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="absolute right-8 top-0 mt-2 w-48 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-xl shadow-xl z-50 overflow-hidden text-left"
-                        onClick={(e) => e.stopPropagation()}
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  {user.role === "owner" ? (
+                    <span className="text-xs text-[var(--text-muted)]">Protegido</span>
+                  ) : (
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => openEditModal(user)}
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                        title="Editar"
+                        aria-label={`Editar ${user.email}`}
                       >
-                        <div className="py-1">
-                          <button
-                            onClick={() => openEditModal(user)}
-                            className="w-full px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] flex items-center gap-2"
-                          >
-                            <Edit className="w-4 h-4" /> Editar
-                          </button>
-
-                          <div className="h-px bg-[var(--border-subtle)] my-1" />
-
-                          <button
-                            onClick={() => {
-                              setDeletingUser(user);
-                              setOpenMenuId(null);
-                            }}
-                            className="w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
-                          >
-                            <Trash2 className="w-4 h-4" /> Eliminar
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(user)}
+                        disabled={currentUser?.id === user.id}
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={currentUser?.id === user.id ? "No puedes eliminar tu propia cuenta" : "Eliminar"}
+                        aria-label={`Eliminar ${user.email}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -323,6 +314,7 @@ export default function UsersPage() {
                     Email
                   </label>
                   <input
+                    type="email"
                     value={editEmail}
                     onChange={(e) => setEditEmail(e.target.value)}
                     className="w-full px-4 py-2 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:border-indigo-500 outline-none"
@@ -353,21 +345,30 @@ export default function UsersPage() {
                   </div>
                   <p className="text-xs text-[var(--text-muted)] mt-1">
                     Define el nivel de acceso del usuario en la plataforma.
+                    {currentUser?.role !== "owner" && " Solo el propietario puede gestionar administradores."}
                   </p>
                 </div>
               </div>
+              {modalError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm" role="alert">
+                  {modalError}
+                </div>
+              )}
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setEditingUser(null)}
-                  className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                  disabled={isSaving}
+                  className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleEdit}
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors"
+                  disabled={isSaving}
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Guardar Cambios
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isSaving ? "Guardando..." : "Guardar Cambios"}
                 </button>
               </div>
             </motion.div>
@@ -401,17 +402,25 @@ export default function UsersPage() {
                   Esta acción es irreversible.
                 </span>
               </p>
+              {modalError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm" role="alert">
+                  {modalError}
+                </div>
+              )}
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setDeletingUser(null)}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  disabled={isSaving}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium transition-colors"
+                  disabled={isSaving}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                   Eliminar
                 </button>
               </div>

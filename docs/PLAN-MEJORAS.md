@@ -60,14 +60,14 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Tras reservar entrada, se envía al usuario a una pestaña donde no ve su ticket.
 - Textos blancos fijos invisibles en modo claro.
 
-## Fase 8 — Panel de administración ⬜
+## Fase 8 — Panel de administración ✅
 - Vercel rechaza subidas >4.5 MB (la UI promete videos de 50 MB) → subida directa a Supabase.
 - No se ven categorías/slides inactivos; "Quitar banner" no se guarda.
 - Sin estado "guardando" (doble clic = duplicados), sin confirmación al borrar, errores genéricos.
 - Tablas y botones de hover inutilizables en móvil.
 - Tickets: no hay forma de listarlos, validarlos ni cancelarlos.
 
-## Fase 9 — Robustez del backend 🟡 (resto en Fase 8: archivos huérfanos en Storage, /events)
+## Fase 9 — Robustez del backend ✅
 - Conexiones a Supabase desde serverless → `NullPool`.
 - `create_all` y seed en cada arranque en frío → script aparte.
 - Fijar todas las versiones de `requirements.txt` (ya rompió una vez).
@@ -79,3 +79,18 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Imágenes de ~800 KB sin optimizar (~3 MB al cargar la portada).
 - Rutas inexistentes responden 200 en lugar de 404.
 - Mantener Supabase activo (ping programado) para que no se pause.
+
+---
+
+## Pendientes del dueño (no se pueden hacer desde el código)
+- Vercel → proyecto **the-mirrow-api** → Environment Variables: confirmar `SECRET_KEY` (valor largo y aleatorio) y que `SUPABASE_KEY` sea la clave **service_role**.
+- Supabase → Storage → bucket `images`: límite de tamaño ≥ 50 MB, tipos permitidos (mp4, webm, ogg, mov, jpeg, png, webp) y bucket público.
+- Probar una subida de video grande (10–40 MB) desde el admin la primera vez.
+- Completar los `[completar: …]` de Privacidad y Términos y revisarlos con un asesor legal.
+- Corregir en el admin la descripción de "Danzas Contemporáneas" (dice "Salas y torneos de billar").
+
+## Pendientes menores (siguiente ronda)
+- Carrusel de categorías: flechas en escritorio.
+- Doble cabecera en el panel de admin en móvil (cabecera del sitio + la del admin).
+- Archivos subidos en un formulario cancelado quedan en Storage.
+- Reservas simultáneas podrían superar el aforo por 1 (sin bloqueo en BD).
