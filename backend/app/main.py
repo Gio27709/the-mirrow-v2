@@ -9,10 +9,40 @@ from . import models, database
 from .database import engine
 from .routers import auth, users, admin, talent, cms, categories, events, tickets
 
-# Create tables
-models.Base.metadata.create_all(bind=engine)
+IS_SERVERLESS = bool(os.getenv("VERCEL"))
 
-app = FastAPI(title="The Mirrow API")
+
+def init_db():
+    """Create missing tables and seed the system roles.
+
+    Runs automatically in local development. On Vercel it would add several
+    database round-trips to every cold start, so production runs it on demand
+    with `python -m scripts.init_db` (or by setting INIT_DB=1 once).
+    """
+    models.Base.metadata.create_all(bind=engine)
+    db = database.SessionLocal()
+    try:
+        for role_name in ["owner", "admin", "user"]:
+            existing = db.query(models.Role).filter(models.Role.name == role_name).first()
+            if not existing:
+                print(f"Seeding missing role: {role_name}")
+                db.add(models.Role(name=role_name, description=f"System {role_name}"))
+        db.commit()
+    finally:
+        db.close()
+
+
+if not IS_SERVERLESS or os.getenv("INIT_DB") == "1":
+    init_db()
+
+# Interactive API docs only outside production (set ENABLE_DOCS=1 to force them on)
+_docs_enabled = not IS_SERVERLESS or os.getenv("ENABLE_DOCS") == "1"
+app = FastAPI(
+    title="The Mirrow API",
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
 
 # CORS
 app.add_middleware(
@@ -27,22 +57,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Startup Event to Seed Roles
-@app.on_event("startup")
-def startup_event():
-    db = database.SessionLocal()
-    try:
-        roles = ["owner", "admin", "user"]
-        for role_name in roles:
-            existing = db.query(models.Role).filter(models.Role.name == role_name).first()
-            if not existing:
-                print(f"Seeding missing role: {role_name}")
-                new_role = models.Role(name=role_name, description=f"System {role_name}")
-                db.add(new_role)
-        db.commit()
-    finally:
-        db.close()
 
 # Include Routers
 app.include_router(auth.router)

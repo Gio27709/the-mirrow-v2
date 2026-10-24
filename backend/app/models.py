@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, Integer, String, Enum, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from .database import Base
 import enum
 
@@ -110,7 +110,8 @@ class TalentProfile(Base):
     user = relationship("User", back_populates="talent_profiles")
 
 # Add back_populates to User model
-User.talent_profiles = relationship("TalentProfile", back_populates="user")
+# Deleting a user deletes their talent profiles (user_id is NOT NULL)
+User.talent_profiles = relationship("TalentProfile", back_populates="user", cascade="all, delete-orphan")
 
 class Category(Base):
     __tablename__ = "categories"
@@ -215,7 +216,8 @@ class EventLineup(Base):
     order = Column(Integer, default=0)                # Display order
 
     event = relationship("Event", back_populates="lineup")
-    talent = relationship("TalentProfile", lazy="joined")
+    # Deleting a talent profile unlinks it from lineups (talent_id is nullable)
+    talent = relationship("TalentProfile", lazy="joined", backref=backref("lineup_entries"))
 
 class EventTicket(Base):
     """Represents a digital ticket for an event"""
@@ -230,6 +232,7 @@ class EventTicket(Base):
     price_paid = Column(String, nullable=True) # How much they paid, or "Gratis"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", backref="tickets")
-    event = relationship("Event", backref="tickets")
+    # Tickets go away with their user/event (FKs are ON DELETE CASCADE)
+    user = relationship("User", backref=backref("tickets", cascade="all, delete-orphan"))
+    event = relationship("Event", backref=backref("tickets", cascade="all, delete-orphan"))
     zone = relationship("EventZone")

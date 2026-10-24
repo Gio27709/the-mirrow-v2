@@ -1,0 +1,6 @@
+
+# Local uploads, logs and lint dumps (not part of the app)
+backend/static/
+backend/backend/
+*.log
+frontend/lint_*.txt
