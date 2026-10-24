@@ -8,7 +8,7 @@ import {
   ReactNode,
   useCallback,
 } from "react";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -39,12 +39,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const logout = useCallback(() => {
+  // Drop the session without navigating (e.g. expired token on a public page)
+  const clearSession = useCallback(() => {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+  }, []);
+
+  const logout = useCallback(() => {
+    clearSession();
     router.push("/login");
-  }, [router]);
+  }, [clearSession, router]);
 
   const fetchUser = useCallback(
     async (authToken: string) => {
@@ -59,13 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return prev;
         });
       } catch (error) {
-        console.error("Failed to fetch user:", error);
-        logout(); // Invalid token
+        // Only an auth failure means the token is bad; network/server errors keep the session
+        if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
+          clearSession();
+        } else {
+          console.error("Failed to fetch user:", error);
+        }
       } finally {
         setLoading(false);
       }
     },
-    [logout],
+    [clearSession],
   );
 
   useEffect(() => {
@@ -78,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
 
-    // Revalidation Logic (Focus & Polling)
+    // Revalidate when the tab regains focus (picks up role/profile changes)
     const handleFocus = () => {
       const currentToken = localStorage.getItem("token");
       if (currentToken) {
@@ -89,18 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("focus", handleFocus);
 
-    // Poll every 5 seconds for "Real Time" feel
-    const interval = setInterval(() => {
-      const currentToken = localStorage.getItem("token");
-      if (currentToken) {
-        setToken(currentToken);
-        fetchUser(currentToken);
-      }
-    }, 5000);
-
     return () => {
       window.removeEventListener("focus", handleFocus);
-      clearInterval(interval);
     };
   }, [fetchUser]);
 

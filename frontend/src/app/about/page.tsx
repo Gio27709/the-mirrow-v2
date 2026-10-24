@@ -1,9 +1,8 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowLeft, Sparkles, Star, Target, ShieldCheck, Ticket, ChevronDown, Quote } from "lucide-react";
+import { Sparkles, Star, Target, Ticket, ChevronDown, Quote } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRef } from "react";
 
 export default function AboutPage() {
@@ -18,13 +17,6 @@ export default function AboutPage() {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-purple-500 selection:text-white overflow-clip pb-32">
-      {/* Back Button */}
-      <Link
-        href="/"
-        className="fixed top-6 left-6 z-50 p-3 bg-black/20 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/40 transition-all text-white shadow-lg"
-      >
-        <ArrowLeft className="w-6 h-6" />
-      </Link>
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">

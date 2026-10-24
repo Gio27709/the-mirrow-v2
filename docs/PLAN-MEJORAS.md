@@ -36,7 +36,7 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Errores del backend se ven como "[object Object]" o en inglés.
 - Modal de cotización no envía el artista ni la fecha, y falla en silencio.
 
-## Fase 5 — Navegación y layout ⬜
+## Fase 5 — Navegación y layout ✅
 - Sidebar muestra "GiovanyDev / Admin" a cualquier visitante.
 - Botones fijos (volver/compartir) quedan debajo del sidebar o encima del header.
 - Header móvil se desborda a 375px; BottomNav sin "Eventos" y "Ajustes" manda al login.

@@ -100,7 +100,7 @@ export default function EventDetailPage({
       if (user && token && event) {
         try {
           const tickets = await api.get("/tickets/my-tickets", token);
-          const userTicketsForEvent = tickets.filter((t: any) => t.event_id === event.id);
+          const userTicketsForEvent = tickets.filter((t: { event_id: number }) => t.event_id === event.id);
           if (userTicketsForEvent.length > 0) {
             setHasTicket(true);
             setTicketCount(userTicketsForEvent.length);
@@ -197,11 +197,12 @@ export default function EventDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pb-24 overflow-clip">
+    <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pb-24 overflow-clip">
       {/* Navigation */}
-      <div className="fixed top-6 left-6 z-50 flex gap-3">
+      <div className="absolute top-4 left-4 md:top-6 md:left-6 z-30 flex gap-3">
         <Link
           href="/eventos"
+          aria-label="Volver a eventos"
           className="p-3 bg-black/30 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/50 transition-all text-white shadow-lg"
         >
           <ArrowLeft className="w-6 h-6" />
@@ -209,7 +210,8 @@ export default function EventDetailPage({
       </div>
       <button
         onClick={handleShare}
-        className="fixed top-6 right-6 z-50 p-3 bg-black/30 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/50 transition-all text-white shadow-lg"
+        aria-label="Compartir evento"
+        className="absolute top-4 right-4 md:top-6 md:right-6 z-30 p-3 bg-black/30 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/50 transition-all text-white shadow-lg"
       >
         <Share2 className="w-6 h-6" />
       </button>

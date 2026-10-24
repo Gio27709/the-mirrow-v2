@@ -5,11 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu,
   Search,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
+  LogIn,
 } from "lucide-react";
 import { NavItem } from "@/lib/nav-data";
 import { usePathname } from "next/navigation";
@@ -25,6 +25,12 @@ import { useAuth } from "@/context/AuthContext";
  * - Search functionality
  * - Collapsible
  */
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Propietario",
+  admin: "Administrador",
+  user: "Usuario",
+};
+
 interface SidebarProps {
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
@@ -302,35 +308,45 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileDrawer = false, o
 
         {/* User / Footer */}
         <div className="p-4 border-t border-[var(--border-subtle)] shrink-0">
-          {!isActuallyCollapsed ? (
+          {!user ? (
+            <Link
+              href="/login"
+              onClick={isMobileDrawer ? onMobileClose : undefined}
+              className={`flex items-center justify-center gap-2 rounded-xl bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold transition-colors ${isActuallyCollapsed ? "w-10 h-10 mx-auto" : "w-full py-2.5"}`}
+              aria-label="Iniciar sesión"
+            >
+              <LogIn className="w-4 h-4" />
+              {!isActuallyCollapsed && "Iniciar sesión"}
+            </Link>
+          ) : !isActuallyCollapsed ? (
             <div className="flex items-center gap-3">
-              {user?.profile_image_url ? (
+              {user.profile_image_url ? (
                 <div className="relative w-9 h-9 shrink-0">
                   <Image src={user.profile_image_url} alt="Avatar" fill className="rounded-full object-cover border border-white/10" sizes="36px" />
                 </div>
               ) : (
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
-                  {user?.full_name ? user.full_name.substring(0, 2).toUpperCase() : "GD"}
+                  {(user.full_name || user.email).substring(0, 2).toUpperCase()}
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
-                  {user?.full_name || "GiovanyDev"}
+                  {user.full_name || user.email}
                 </p>
                 <p className="text-xs text-[var(--text-muted)] truncate">
-                  {user?.role || "Admin"}
+                  {user.role ? ROLE_LABELS[user.role] ?? user.role : ""}
                 </p>
               </div>
             </div>
           ) : (
             <div className="flex justify-center">
-              {user?.profile_image_url ? (
+              {user.profile_image_url ? (
                 <div className="relative w-8 h-8 shrink-0">
                   <Image src={user.profile_image_url} alt="Avatar" fill className="rounded-full object-cover border border-white/10" sizes="32px" />
                 </div>
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center">
-                  <Menu className="w-4 h-4 text-[var(--text-secondary)]" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[10px]">
+                  {(user.full_name || user.email).substring(0, 2).toUpperCase()}
                 </div>
               )}
             </div>

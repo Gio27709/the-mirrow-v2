@@ -82,10 +82,10 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+    <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* Back Button */}
-      <Link href="/explore"
-        className="fixed top-6 left-6 z-50 p-3 bg-black/20 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/40 transition-all text-white">
+      <Link href="/explore" aria-label="Volver"
+        className="absolute top-4 left-4 md:top-6 md:left-6 z-30 p-3 bg-black/20 backdrop-blur-md border border-white/10 rounded-full hover:bg-black/40 transition-all text-white">
         <ArrowLeft className="w-6 h-6" />
       </Link>
 

@@ -39,9 +39,6 @@ export function useNavigation() {
 
     // Check if a specific route is active
     const isRouteActive = (route: NavRoute): boolean => {
-        if (pathname === "/" && route.href === "/teatro") {
-            return true; // Default to Teatro on home
-        }
         return pathname === route.href || pathname.startsWith(`${route.href}/`);
     };
 

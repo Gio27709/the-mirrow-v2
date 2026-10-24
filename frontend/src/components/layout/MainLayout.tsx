@@ -47,19 +47,16 @@ export function MainLayout({ children }: MainLayoutProps) {
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    // Prevent hydration mismatch
-    if (!isClient) {
-        return (
-            <div className="min-h-screen bg-pure-black">
-                <main className="min-h-screen">{children}</main>
-            </div>
-        );
-    }
+    // Navigation chrome depends on the viewport, so it only renders after mount.
+    // `children` must keep the same position in the tree before and after mount,
+    // otherwise every page unmounts/remounts and fetches its data twice.
+    const showDesktop = isClient && !isMobile;
+    const showMobile = isClient && isMobile;
 
     return (
         <div className="min-h-screen bg-pure-black overflow-clip">
             {/* Desktop: Sidebar (Fixed) */}
-            {!isMobile && (
+            {showDesktop && (
                 <Sidebar
                     isCollapsed={isSidebarCollapsed}
                     setIsCollapsed={setIsSidebarCollapsed}
@@ -67,7 +64,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             )}
 
             {/* Mobile: Header with search and theme */}
-            {isMobile && (
+            {showMobile && (
                 <MobileHeader
                     onMenuToggle={() => setIsMobileSidebarOpen(true)}
                 />
@@ -75,7 +72,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
             {/* Mobile: Sidebar Drawer Overlay */}
             <AnimatePresence>
-            {isMobile && isMobileSidebarOpen && (
+            {showMobile && isMobileSidebarOpen && (
                 <>
                     {/* Backdrop */}
                     <motion.div
@@ -113,11 +110,11 @@ export function MainLayout({ children }: MainLayoutProps) {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className={`
           min-h-screen transition-all duration-300 flex flex-col
-          ${!isMobile ? (isSidebarCollapsed ? "ml-[80px]" : "ml-[280px]") : "pb-24"}
+          ${showDesktop ? (isSidebarCollapsed ? "ml-[80px]" : "ml-[280px]") : showMobile ? "pb-24" : ""}
         `}
             >
                 {/* Desktop Header Stack */}
-                {!isMobile && (
+                {showDesktop && (
                     <>
                         <TopContactBar />
                         <FloatingNavbar />
@@ -127,7 +124,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 {/* Content wrapper */}
                 <main className="relative px-4 md:px-6 lg:px-8 flex-1">
                     {/* Gradient overlay for depth effect on scroll - only on desktop */}
-                    {!isMobile && (
+                    {showDesktop && (
                         <div className="pointer-events-none fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-pure-black via-pure-black/80 to-transparent z-20" />
                     )}
 
@@ -141,7 +138,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </motion.div>
 
             {/* Mobile: Bottom navigation */}
-            {isMobile && <BottomNav />}
+            {showMobile && <BottomNav />}
         </div>
     );
 }

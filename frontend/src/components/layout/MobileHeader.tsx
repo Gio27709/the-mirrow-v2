@@ -46,7 +46,7 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
     >
       <div className="bg-[var(--bg-secondary)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] px-4 py-3 transition-colors relative">
         {/* Main Header Row */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
           {/* Hamburger Menu Button */}
           <div className="flex items-center gap-2 shrink-0">
             {onMenuToggle && (
@@ -62,7 +62,7 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
 
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <Logo className="scale-[0.85] origin-left" />
+              <Logo className="w-[112px]! h-[40px]! sm:w-[140px]! sm:h-[48px]!" />
             </Link>
           </div>
 
@@ -89,7 +89,7 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
             {/* Theme Switcher */}
             <ThemeSwitcher />
 
-            <div className="w-px h-6 bg-[var(--border-subtle)] mx-1" />
+            <div className="hidden sm:block w-px h-6 bg-[var(--border-subtle)] mx-1" />
 
             {/* User / Auth Controls */}
             {user ? (

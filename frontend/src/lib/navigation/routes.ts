@@ -1,4 +1,4 @@
-import { LayoutDashboard, Compass, Settings, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Compass, Calendar, User, LucideIcon } from "lucide-react";
 
 /**
  * Navigation route definition for The Mirrow 2 platform
@@ -36,11 +36,18 @@ export const navigationRoutes: NavRoute[] = [
     description: "Descubre todas las categorías",
   },
   {
+    id: "events",
+    label: "Eventos",
+    href: "/eventos",
+    icon: Calendar,
+    description: "Cartelera de eventos",
+  },
+  {
     id: "settings",
-    label: "Ajustes",
+    label: "Mi cuenta",
     href: "/settings",
-    icon: Settings,
-    description: "Configuración de cuenta",
+    icon: User,
+    description: "Tu cuenta y tus entradas",
   },
 ];
 
