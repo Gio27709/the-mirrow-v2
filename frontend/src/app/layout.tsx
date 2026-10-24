@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CategoryProvider } from "@/context/CategoryContext";
 import { MainLayout } from "@/components/layout";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { SITE } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,22 +22,43 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#000000",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
 };
 
+const DESCRIPTION =
+  "Contrata artistas para tu evento y vive experiencias en directo: músicos, DJs, cantantes, artes escénicas y danza. Eventos, entradas y producción con The Mirrow.";
+
 export const metadata: Metadata = {
-  title: "The Mirrow | Entertainment Platform",
-  description:
-    "Plataforma de entretenimiento profesional - Teatro, Músicos, DJs, Cantantes y Billar",
+  metadataBase: new URL(SITE.url),
+  title: "The Mirrow | Artistas y eventos en directo",
+  description: DESCRIPTION,
   keywords: [
-    "entretenimiento",
-    "teatro",
-    "música",
+    "contratar artistas",
+    "eventos",
+    "entradas",
+    "músicos",
     "djs",
     "cantantes",
-    "billar",
+    "artes escénicas",
+    "danza",
+    "producción de eventos",
   ],
-  authors: [{ name: "The Mirrow Team" }],
+  authors: [{ name: "The Mirrow" }],
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    siteName: "The Mirrow",
+    title: "The Mirrow | Artistas y eventos en directo",
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Mirrow | Artistas y eventos en directo",
+    description: DESCRIPTION,
+  },
 };
 
 const GOOGLE_CLIENT_ID =

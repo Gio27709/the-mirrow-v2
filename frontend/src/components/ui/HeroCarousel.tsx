@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import Link from "next/link";
@@ -139,7 +140,8 @@ export function HeroCarousel({ slides: slidesProp }: { slides?: Slide[] }) {
               onError={() =>
                 setFailedImages((prev) => [...prev, slides[current].id])
               }
-              unoptimized
+              sizes="(min-width: 1024px) 66vw, 100vw"
+              unoptimized={!canOptimize(slides[current].image)}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--bg-tertiary)] flex items-center justify-center">

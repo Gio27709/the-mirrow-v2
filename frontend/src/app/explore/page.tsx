@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { ArrowRight, Layers, LucideIcon } from "lucide-react";
 import * as Icons from "lucide-react";
 import { motion } from "framer-motion";
@@ -79,11 +80,12 @@ export default function ExplorePage() {
                     {cat.banner_url ? (
                       <>
                         <Image
+              sizes="(min-width: 768px) 50vw, 100vw"
                           src={cat.banner_url}
                           alt={cat.name}
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
-                          unoptimized
+                          unoptimized={!canOptimize(cat.banner_url)}
                         />
                         {/* Dark overlay for text readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 z-[1]" />

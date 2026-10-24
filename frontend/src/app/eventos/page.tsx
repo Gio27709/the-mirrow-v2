@@ -20,6 +20,7 @@ import {
 import { SITE } from "@/lib/site";
 import Link from "next/link";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { api } from "@/lib/api";
 
 interface EventZone {
@@ -191,11 +192,12 @@ export default function EventosPage() {
                   <div className="relative h-[250px] md:h-[400px] lg:h-auto overflow-hidden">
                     {featuredEvent.image_url ? (
                       <Image
+              sizes="(min-width: 1024px) 50vw, 100vw"
                         src={featuredEvent.image_url}
                         alt={featuredEvent.title}
                         fill
                         className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                        unoptimized
+                        unoptimized={!canOptimize(featuredEvent.image_url)}
                       />
                     ) : (
                       <div className="w-full h-full min-h-[400px] bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center">
@@ -390,11 +392,12 @@ export default function EventosPage() {
                       <div className="aspect-[16/9] relative overflow-hidden">
                         {event.image_url ? (
                           <Image
+              sizes="(min-width: 1024px) 50vw, 100vw"
                             src={event.image_url}
                             alt={event.title}
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-110"
-                            unoptimized
+                            unoptimized={!canOptimize(event.image_url)}
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center">
@@ -534,11 +537,12 @@ export default function EventosPage() {
                     <div className="relative w-24 h-20 shrink-0 rounded-xl overflow-hidden bg-[var(--bg-tertiary)]">
                       {event.image_url && (
                         <Image
+              sizes="(min-width: 1024px) 50vw, 100vw"
                           src={event.image_url}
                           alt={event.title}
                           fill
                           className="object-cover grayscale group-hover:grayscale-0 transition-all"
-                          unoptimized
+                          unoptimized={!canOptimize(event.image_url)}
                         />
                       )}
                     </div>

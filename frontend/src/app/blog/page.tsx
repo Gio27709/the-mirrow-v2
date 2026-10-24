@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -248,10 +249,11 @@ function EventCard({ event, index, past = false }: { event: FeedEvent; index: nu
         <div className="relative aspect-[16/10] overflow-hidden bg-[var(--bg-tertiary)]">
           {event.image_url ? (
             <Image
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               src={event.image_url}
               alt={event.title}
               fill
-              unoptimized
+              unoptimized={!canOptimize(event.image_url)}
               className={`object-cover transition-transform duration-500 group-hover:scale-105 ${past ? "grayscale-[40%]" : ""}`}
             />
           ) : (
@@ -315,10 +317,11 @@ function TalentTile({ talent, index }: { talent: FeedTalent; index: number }) {
         <div className="relative aspect-square overflow-hidden bg-[var(--bg-tertiary)]">
           {img ? (
             <Image
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               src={img}
               alt={talent.stage_name}
               fill
-              unoptimized
+              unoptimized={!canOptimize(img)}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (

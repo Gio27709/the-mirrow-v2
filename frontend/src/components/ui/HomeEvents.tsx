@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { ArrowRight, Calendar, MapPin, Music } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
@@ -120,11 +121,12 @@ function EventCard({ event, index, mobile = false }: { event: HomeEvent; index: 
         <div className={`relative overflow-hidden ${mobile ? "aspect-[3/4]" : "aspect-[4/5]"}`}>
           {event.image_url ? (
             <Image
+              sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 72vw"
               src={event.image_url}
               alt={event.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
-              unoptimized
+              unoptimized={!canOptimize(event.image_url)}
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center">

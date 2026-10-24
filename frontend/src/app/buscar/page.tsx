@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, Calendar, MapPin, Music, Layers, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -148,7 +149,8 @@ function SearchContent() {
                   >
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[var(--bg-tertiary)] shrink-0">
                       {t.image_url ? (
-                        <Image src={t.image_url} alt={t.stage_name} fill className="object-cover" unoptimized />
+                        <Image
+              sizes="80px" src={t.image_url} alt={t.stage_name} fill className="object-cover" unoptimized={!canOptimize(t.image_url)} />
                       ) : (
                         <Music className="w-6 h-6 m-auto mt-5 text-[var(--text-muted)]" />
                       )}
@@ -177,7 +179,8 @@ function SearchContent() {
                   >
                     <div className="relative w-20 h-16 rounded-xl overflow-hidden bg-[var(--bg-tertiary)] shrink-0">
                       {e.image_url && (
-                        <Image src={e.image_url} alt={e.title} fill className="object-cover" unoptimized />
+                        <Image
+              sizes="80px" src={e.image_url} alt={e.title} fill className="object-cover" unoptimized={!canOptimize(e.image_url)} />
                       )}
                     </div>
                     <div className="min-w-0 space-y-1">

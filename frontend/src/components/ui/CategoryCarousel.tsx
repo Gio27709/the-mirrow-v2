@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Layers, LucideIcon } from "lucide-react";
@@ -88,11 +89,12 @@ export function CategoryCarousel() {
                   <div className="relative w-20 h-20 md:w-36 md:h-36 rounded-full overflow-hidden shadow-xl md:shadow-2xl border-2 border-transparent group-hover:border-[var(--accent-metallic)] transition-all duration-300 pointer-events-none">
                     {cat.banner_url || cat.image_url ? (
                       <Image
+              sizes="144px"
                         src={cat.banner_url || cat.image_url}
                         alt={cat.name}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-50"
-                        unoptimized
+                        unoptimized={!canOptimize(cat.banner_url || cat.image_url)}
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 opacity-70 group-hover:opacity-50 transition-opacity" />

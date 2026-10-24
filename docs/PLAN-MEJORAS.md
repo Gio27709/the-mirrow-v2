@@ -67,14 +67,14 @@ Causa raíz de muchos bugs visuales: estilos sin `@layer` en `globals.css` le ga
 - Tablas y botones de hover inutilizables en móvil.
 - Tickets: no hay forma de listarlos, validarlos ni cancelarlos.
 
-## Fase 9 — Robustez del backend ⬜
+## Fase 9 — Robustez del backend 🟡 (resto en Fase 8: archivos huérfanos en Storage, /events)
 - Conexiones a Supabase desde serverless → `NullPool`.
 - `create_all` y seed en cada arranque en frío → script aparte.
 - Fijar todas las versiones de `requirements.txt` (ya rompió una vez).
 - Borrar usuario/evento con relaciones → error 500 (cascadas).
 - Archivos huérfanos en Storage; `/docs` público; `/events` sin barra (redirección extra).
 
-## Fase 10 — SEO, rendimiento y mantenimiento ⬜
+## Fase 10 — SEO, rendimiento y mantenimiento ✅
 - Títulos y descripciones por página (eventos, artistas, categorías), `sitemap` y `robots`.
 - Imágenes de ~800 KB sin optimizar (~3 MB al cargar la portada).
 - Rutas inexistentes responden 200 en lugar de 404.

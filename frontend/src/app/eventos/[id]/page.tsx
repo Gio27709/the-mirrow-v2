@@ -26,6 +26,7 @@ import {
 import { SITE } from "@/lib/site";
 import Link from "next/link";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 interface EventZone {
   id: number;
   name: string;
@@ -221,12 +222,13 @@ export default function EventDetailPage({
       <section className="relative h-[60vh] md:h-[70vh] overflow-hidden">
         {event.image_url ? (
           <Image
+              sizes="100vw"
             src={event.image_url}
             alt={event.title}
             fill
             className="object-cover"
             priority
-            unoptimized
+            unoptimized={!canOptimize(event.image_url)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-900 via-violet-900 to-pink-900 flex items-center justify-center">
@@ -397,7 +399,7 @@ export default function EventDetailPage({
                             width={64}
                             height={64}
                             className="object-cover w-full h-full"
-                            unoptimized
+                            unoptimized={!canOptimize(artist.image_url)}
                           />
                         ) : (
                           <span className="text-2xl font-black text-white/80">
@@ -705,7 +707,7 @@ export default function EventDetailPage({
                     width={400}
                     height={560}
                     className="w-full h-auto object-cover"
-                    unoptimized
+                    unoptimized={!canOptimize(event.flyer_url)}
                   />
                 </motion.div>
               )}

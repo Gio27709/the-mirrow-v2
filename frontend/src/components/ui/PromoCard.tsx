@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -41,7 +42,8 @@ export function PromoCard({
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-110"
           onError={() => setImageError(true)}
-          unoptimized
+          sizes="(min-width: 1024px) 33vw, 50vw"
+          unoptimized={!canOptimize(image)}
         />
       ) : (
         <div

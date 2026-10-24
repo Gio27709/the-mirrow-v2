@@ -1,0 +1,24 @@
+# Supabase (free plan) pauses projects after ~7 days without activity, which
+# takes the API down. This hits an endpoint that queries the database every
+# 3 days so the project stays active. Can also be run by hand from Actions.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "17 9 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the API (touches the database)
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 https://the-mirrow-api.vercel.app/categories)
+            echo "Attempt $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "::error::The API did not answer 200 — check Supabase and Vercel"
+          exit 1
